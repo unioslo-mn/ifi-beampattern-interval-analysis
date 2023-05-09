@@ -34,4 +34,5 @@ plot(theta, dir_I(:,1), 'Displayname', 'Lower (\pm10\circ)', 'linewidth',2, 'col
 legend boxoff
 
 ax = gca;
+%% 
 %exportgraphics(ax,'directivity_function.pdf')%,'Resolution',300) 

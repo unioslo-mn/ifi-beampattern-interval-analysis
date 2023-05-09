@@ -327,5 +327,6 @@ c.Title.String = "(dB)";
 colormap( ha(3), twilight)
 colormap( ha(4), hot )
 colormap( axs, twilight)
+%% 
 
 %exportgraphics(gcf,'Fig10_eight_plot.jpg','Resolution',300) 
