@@ -1,5 +1,6 @@
 # Beampattern Interval Analysis Toolbox 
-An object-oriented MATLAB package for beampattern interval analysis.
+An object-oriented MATLAB package for beampattern interval analysis. 
+This package is dependent on the [complex interval arithmetic toolbox](https://github.com/unioslo-mn/ifi-complex-interval-arithmetic/tree/main).
 
 ## Getting started:
 1) Clone this repository and also the complex interval arithmetic toolbox from https://github.com/unioslo-mn/ifi-complex-interval-arithmetic/tree/main
