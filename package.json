@@ -1,0 +1,19 @@
+{
+  "name": "biat",
+  "version": "2.1.0",
+  "description": "Beampattern Analysis Toolbox",
+  "main": "biat",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unioslo-mn/ifi-beampattern-interval-analysis"
+  },
+  "author": ["Gábor Geréb","Håvard Arnestad"],
+  "license": "BSD-3",
+  "bugs": {
+    "url": "https://github.com/unioslo-mn/ifi-beampattern-interval-analysis/issues"
+  },
+  "homepage": "https://github.com/unioslo-mn/ifi-beampattern-interval-analysis#readme",
+  "dependencies": {
+    "ciat": "git+https://github.com/unioslo-mn/ifi-complex-interval-arithmetic.git"
+  }
+}
