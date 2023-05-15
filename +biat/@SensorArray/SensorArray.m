@@ -128,8 +128,8 @@ methods
             options.TaperParam      (:,1)   {mustBeNumeric} = 0   
             options.TaperAngles     (1,2)   {mustBeNumeric} = deg2rad([80,100])
             options.CouplingCoeff   (1,1)   {mustBeNumeric} = 0
-            options.GainError       (:,1)   {mustBeNumeric} = 0.01
-            options.PhaseError      (:,1)   {mustBeNumeric} = deg2rad(2)
+            options.GainError       (:,1)   {mustBeNumeric} = 0
+            options.PhaseError      (:,1)   {mustBeNumeric} = 0
             options.OrientError     (:,1)   {mustBeNumeric} = 0
             options.PosXError       (:,1)   {mustBeNumeric} = 0
             options.PosYError       (:,1)   {mustBeNumeric} = 0
