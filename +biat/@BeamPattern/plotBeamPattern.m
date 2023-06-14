@@ -63,7 +63,7 @@ if isempty(options.BeamPattern)
 else
    P = options.BeamPattern;
    assert(size(P,1) == obj.BeamCount)
-   assert(size(P,2) == 3)
+   assert(size(P,2) == 2 || size(P,2) == 3)
 end
 
 P(P==0) = eps;

@@ -54,7 +54,7 @@ for iCase = 1:length(N)
     block = copy(array);
     block.ElCount = Nb;
     block.ElPitchRatio= 0.5*Mb;
-    block.TaperParam = ones(Nb);
+    block.TaperParam = ones(Nb,1);
     block.PosXError = errPosX * (Nb>1);
     block.PosYError = errPosY * (Nb>1);
 

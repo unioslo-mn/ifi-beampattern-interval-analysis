@@ -9,7 +9,7 @@ array = biat.SensorArray(   'ElCount',          5,...
                             'ElDiameterRatio',  0,...
                             'Curvature',        0.2,...
                             'SteeringAngle',    deg2rad(10),...
-                            'GainError',        3/100,...
+                            'GainError',        0/100,...
                             'PhaseError',       deg2rad(3));  
 
 bp_nom = biat.BeamPattern(array,'nominal','BeamResolutionDeg',0.35/2);
@@ -28,7 +28,7 @@ array.plot;
 
 %% Plot BPs
 fig2 = figure(2);clf
-fig2.Position = [200 200 600 240]; 
+fig2.Position = [200 200 600*2 240*2]; 
 subplot(1,2,1);
 hold on; axis equal; xlim([-0.25,0.25]); ylim([-0.25,0.25]); grid on; 
 set(gcf, 'color', 'white');
@@ -80,6 +80,8 @@ p_U = plot(1,1, 'linewidth',2, 'color','r','linestyle','-', ...
 legend('Location','northwest','AutoUpdate','off')  
 plot([10,10],[-50,2], 'k:','linewidth',2, 'Displayname','Steering angle');
 
+
+gif('anim.gif')
 for t = 1 : length(thetas) % Loop over angles
     bp_nom.BeamIndex = t;
     bp_pol.BeamIndex = t;
@@ -120,7 +122,7 @@ for t = 1 : length(thetas) % Loop over angles
              'ydata', 10*log10(abs(P_pol(1:t,2))));
     
     drawnow;
-    
+    gif
     if t < length(thetas)
         delete(p1);
         delete(p2);
