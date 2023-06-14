@@ -4,7 +4,9 @@ function initializeControllers()
     guicp = evalin('base','gui');
 
     % Initialize array
-    guicp.array = biat.SensorArray('TaperType','kaiser');
+    guicp.array = biat.SensorArray('TaperType','kaiser',...
+                                   'GainError',0.02,...
+                                   'PhaseError',deg2rad(5));
 
     % Initialize beampatterns
     guicp.beampattern(1) = biat.BeamPattern(guicp.array,'nominal');
