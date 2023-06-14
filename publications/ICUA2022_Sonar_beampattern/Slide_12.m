@@ -66,20 +66,20 @@ fig3.Position = [200 200 600 240];
 
 set(gcf, 'color', 'white');
 
-subplot(1,2,1); hold on; ylim([0.95,1.05])
+subplot(1,2,1); hold on; 
 
 xlabel('Element')
-ylabel('Amplitude, 1+g_c ( - )')
+ylabel('Amplitude error (%)')
 set(gca,'FontSize',12)
 
-bar(abs(W),'FaceColor',[.3 .3 .3],'EdgeColor',[0 0 0],'displayname', 'Realization')
-plot(1:M,[gI.Supremum],'r:','linewidth',5, 'displayname', 'Upper bound')
-plot(1:M,[gI.Infimum],'b:','linewidth',5, 'displayname', 'Lower bound')
+bar(abs(W)-1,'FaceColor',[.3 .3 .3],'EdgeColor',[0 0 0],'displayname', 'Realization')
+plot(1:M,[gI.Supremum]-1,'r:','linewidth',5, 'displayname', 'Upper bound')
+plot(1:M,[gI.Infimum]-1,'b:','linewidth',5, 'displayname', 'Lower bound')
 legend('Location','northwest')
 
 subplot(1,2,2); hold on;
 xlabel('Element')
-ylabel('Phase, \phi_c (deg)')
+ylabel('Phase error, \phi_c (deg)')
 set(gca,'FontSize',12)
 bar(rad2deg(angle(W)),'FaceColor',[.3 .3 .3],'EdgeColor',[0 0 0],'displayname', 'Realization')
 plot(1:M,rad2deg([phI.Supremum]),'r:','linewidth',5, 'displayname', 'upper bound')

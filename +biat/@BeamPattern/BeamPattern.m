@@ -137,10 +137,14 @@ classdef BeamPattern
 
 
             % Forcing block array structure
-            assert(var([obj.ArrayHandle.WaveLength]) == 0)
-            assert(var([obj.ArrayHandle.ElCount]) == 0);
-            assert(var([obj.ArrayHandle.SteeringAngle]) == 0)
-            assert(var([obj.ArrayHandle.Curvature]) == 0);
+            assert(all([obj.ArrayHandle.WaveLength] == ...
+                        obj.ArrayHandle(1).WaveLength))
+            assert(all([obj.ArrayHandle.ElCount] == ...
+                        obj.ArrayHandle(1).ElCount));
+            assert(all([obj.ArrayHandle.SteeringAngle] == ...
+                        obj.ArrayHandle(1).SteeringAngle))
+            assert(all([obj.ArrayHandle.Curvature] == ...
+                        obj.ArrayHandle(1).Curvature));
             if ~isempty(obj.Block)
                 assert(obj.ArrayHandle(1).WaveLength == obj.Block.WaveLength)
                 assert(obj.ArrayHandle(1).SteeringAngle == obj.Block.SteeringAngle)
