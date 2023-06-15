@@ -100,8 +100,7 @@ legend('location','northwest')
 set(gca, 'fontsize', 14)
 legend boxoff
 
-%%
-exportgraphics(gca,'fig3.pdf')%,'Resolution',300)
+% exportgraphics(gca,'fig3.pdf')%,'Resolution',300)
 
 %% Figure 5
 fig2 = figure(2);clf

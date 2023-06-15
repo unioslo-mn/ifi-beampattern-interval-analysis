@@ -134,20 +134,20 @@ legend('AutoUpdate','off');
 pgon = polyshape(real(final_potato.Points), imag(final_potato.Points));
 plot(pgon,'FaceColor',[0.4,0.4,0.4],'FaceAlpha',0.3)
 
-for i=1:length(vecs)
-    pgon = polyshape(real(shapes(i).Points), imag(shapes(i).Points));
+for idx=1:length(vecs)
+    pgon = polyshape(real(shapes(idx).Points), imag(shapes(idx).Points));
     plot(pgon,'FaceColor',[0.4,0.4,0.4],'FaceAlpha',0.1, 'Displayname', 'Complex intervals')
 
-    if i == 4; legend('Location','northwest','AutoUpdate','on'); end
+    if idx == 4; legend('Location','northwest','AutoUpdate','on'); end
 end
 
 legend('Location','northwest','AutoUpdate','off');
 plot(real(sum(vecs)), imag(sum(vecs)), 'ko','markersize',13,'MarkerFaceColor',[0.1 0.8 0.1]);
 
-for i=1:length(vecs)
-    [x,y] = array.getArrowLine([0,0],[(real(vecs(i))), (imag(vecs(i)))], 0.02);
+for idx=1:length(vecs)
+    [x,y] = array.getArrowLine([0,0],[(real(vecs(idx))), (imag(vecs(idx)))], 0.02);
     plot(x, y,  'linewidth',3, 'color','k', 'displayname', 'Element response');
-    if i == 4; legend('Location','northwest','AutoUpdate','on'); end
+    if idx == 4; legend('Location','northwest','AutoUpdate','on'); end
 end
 
 legend('Location','northwest','AutoUpdate','off');
