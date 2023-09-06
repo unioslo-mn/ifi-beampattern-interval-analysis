@@ -27,6 +27,9 @@ classdef BeamPattern
         BeamIndex           % Index of the selected beam out of the BeamAngles array
         BeamAngle           % Custom beam angle given in radians, works when BeamIndex is "0"
         PolygonTolerance    % Precision parameter for polygonal interval calculations (see ciat.Polygonal class)
+        HasProbability      % Boolean flag indicating if the object has a probability distribution
+        ErrorDistribution   % Error distribution type (uniform or polarnormal)
+        CouplingErrorDistribution % Coupling error distribution type (uniform or polarnormal)
     end
 
     properties (Dependent)
@@ -125,6 +128,16 @@ classdef BeamPattern
                optional.BeamIndex           (1,1)  {mustBeNumeric} = 1
                optional.BeamAngle           (1,1)  {mustBeNumeric} = 0
                optional.PolygonTolerance    (1,1)  {mustBeNumeric} = 1e-5
+               optional.HasProbability      (1,1)  {mustBeNumericOrLogical} = false
+               optional.ErrorDistribution   (1,1)  string ...
+                                    {mustBeMember(optional.ErrorDistribution ,...
+                                    {'uniform','polarnormal'})} ...
+                                                            = 'polarnormal'
+                optional.CouplingErrorDistribution (1,1)  string ...
+                                    {mustBeMember(optional.CouplingErrorDistribution ,...
+                                    {'uniform','polarnormal'})} ...
+                                                            = 'polarnormal'
+
             end
             obj.ArrayHandle         = ArrayHandle;
             obj.Type                = Type;
@@ -134,6 +147,9 @@ classdef BeamPattern
             obj.BeamIndex           = optional.BeamIndex;
             obj.BeamAngle           = optional.BeamAngle;
             obj.PolygonTolerance    = optional.PolygonTolerance;
+            obj.HasProbability      = optional.HasProbability;
+            obj.ErrorDistribution   = optional.ErrorDistribution;
+            obj.CouplingErrorDistribution = optional.CouplingErrorDistribution;
 
 
             % Forcing block array structure
