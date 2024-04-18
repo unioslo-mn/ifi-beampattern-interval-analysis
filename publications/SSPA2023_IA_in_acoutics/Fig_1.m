@@ -58,8 +58,8 @@ set(gca,'FontSize',16)
 f = @(a,b) a./(a+b);
 
 % Set intervals
-a_int = ciat.RealInterval([1 3]);
-b_int = ciat.RealInterval([1 2]);
+a_int = ciat.RealInterval(1, 3);
+b_int = ciat.RealInterval(1, 2);
 
 % Set plot axis limits
 a_lim = [0 5];

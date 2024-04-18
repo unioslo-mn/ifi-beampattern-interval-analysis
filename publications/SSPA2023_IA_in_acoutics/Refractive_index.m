@@ -18,8 +18,8 @@ th1Nom = deg2rad(15);
 th2Nom = deg2rad(18);
 
 % Define intervals
-th1Int = ciat.RealInterval(th1Nom+[-1 1]*thErr);
-th2Int = ciat.RealInterval(th2Nom+[-1 1]*thErr);
+th1Int = ciat.RealInterval( th1Nom-thErr , th1Nom+thErr );
+th2Int = ciat.RealInterval( th2Nom-thErr , th2Nom+thErr );
 
 % Calculate and plot result (sampled and interval arithmetic)
 [nSmp nInt] = plotIntervalFunction(nFunc, th1Int, th2Int,...

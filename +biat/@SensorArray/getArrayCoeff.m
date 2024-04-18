@@ -37,30 +37,34 @@ function value = getArrayCoeff(obj)
     posX = obj.ElPosX;
     posY = obj.ElPosY;
     if obj.CouplingCoeff == 0
-        value  = zeros(obj.ElCount, 1); % Ac as complex number
-        for iCpl = 1:obj.ElCount % each row is one element + coupling to others
-            for iEl = 1:obj.ElCount % each collumn is a coupling element
-                value(iCpl) = value(iCpl) + cplR (iEl, iCpl) * w(iEl) * ...
-                              exp(1j*(cplPh(iEl, iCpl)-...
-                              (k(1) * posX(iEl) + k(2) * posY(iEl))));
-
-            end 
-        end
+        % value  = zeros(obj.ElCount, 1); % Ac as complex number
+        % for iCpl = 1:obj.ElCount % each row is one element + coupling to others
+        %     for iEl = 1:obj.ElCount % each collumn is a coupling element
+        %         value(iCpl) = value(iCpl) + cplR (iEl, iCpl) * w(iEl) * ...
+        %                       exp(1j*(cplPh(iEl, iCpl)-...
+        %                       (k(1) * posX(iEl) + k(2) * posY(iEl))));
+        % 
+        %     end 
+        %     (cplR(:,iCpl).*w).' * exp(1j*(cplPh(:,iCpl)-[posX posY]*k));
+        % end
+        value = (cplR .* exp(1j*cplPh)).' * (w .* exp(-1j*[posX posY]*k));
     else
-        value  = repmat(ciat.CircularInterval( 0, 0), obj.ElCount,1);  
-        for iCpl = 1:obj.ElCount % each row is one element + idxing to others
-            center = 0;
-            radius = 0;
-            for iEl = 1:obj.ElCount % each collumn is a idxing element
-                if iCpl == iEl
-                    center = w(iEl) * exp(-1j*(k(1) * posX(iEl) + ...
-                                               k(2) * posY(iEl)));
-                else
-                    radius = radius + cplR(iEl, iCpl) * w(iEl);
-                end
-
-            end 
-        value(iCpl) = ciat.CircularInterval(center, radius);
-        end
+        % value  = repmat(ciat.CircularInterval( 0, 0), obj.ElCount,1);  
+        % for iCpl = 1:obj.ElCount % each row is one element + idxing to others
+        %     center = 0;
+        %     radius = 0;
+        %     for iEl = 1:obj.ElCount % each collumn is a idxing element
+        %         if iCpl == iEl
+        %             center = w(iEl) * exp(-1j*(k(1) * posX(iEl) + ...
+        %                                        k(2) * posY(iEl)));
+        %         else
+        %             radius = radius + cplR(iEl, iCpl) * w(iEl);
+        %         end
+        %     end 
+        % value(iCpl) = ciat.CircularInterval(center, radius);
+        % end
+        center = w .* exp(-1j * [posX posY] * k);
+        radius = (cplR - diag(cplR).*eye(obj.ElCount)).' * w;
+        value = ciat.CircularInterval(center, radius);
     end
 end

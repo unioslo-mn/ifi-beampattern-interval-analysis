@@ -28,11 +28,11 @@ function value = MonteCarlo_P(bp,options)
     rx_I = bp.Arrays.PosXInterval;
     ry_I = bp.Arrays.PosYInterval;
     psi_I = bp.Arrays.OrientInterval;
-    g_MC = [g_I.Infimum]' + [g_I.Width]' .* rand(M, 1);
-    phi_MC = [ph_I.Infimum]' + [ph_I.Width]' .* rand(M, 1);
-    rx_MC = [rx_I.Infimum]' + [rx_I.Width]' .* rand(M, 1);
-    ry_MC = [ry_I.Infimum]' + [ry_I.Width]' .* rand(M, 1);
-    psi_MC = [psi_I.Infimum]' + [psi_I.Width]' .* rand(M, 1);
+    g_MC = g_I.Infimum + g_I.Width .* rand(M, 1);
+    phi_MC = ph_I.Infimum + ph_I.Width .* rand(M, 1);
+    rx_MC = rx_I.Infimum + rx_I.Width .* rand(M, 1);
+    ry_MC = ry_I.Infimum + ry_I.Width .* rand(M, 1);
+    psi_MC = psi_I.Infimum + psi_I.Width .* rand(M, 1);
     
     rand_C_prime = rand(M, M) .* exp( 1j* 2*pi * rand(M, M) );
     rand_C_prime( 1 : M + 1 : M^2) = 1;

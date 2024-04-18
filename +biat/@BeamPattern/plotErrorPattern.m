@@ -58,8 +58,8 @@ function plotErrorPattern(obj,options)
 
             % Plot error amplitudes
             bar(100*(abs(errPat)-1),'FaceColor','b','EdgeColor','b')
-            plot(1:M , 100*([I_g.Supremum]'-1),'b--')
-            plot(1:M , 100*([I_g.Infimum]'-1),'b--')
+            plot(1:M , 100*(I_g.Supremum-1),'b--')
+            plot(1:M , 100*(I_g.Infimum-1),'b--')
             ylim(100*[(I_g(1).Infimum-1)*sep-eps, (I_g(1).Supremum-1)*sep+eps]); 
             yl=ylim();ylim([2*yl(1)-yl(2) yl(2)])
 
@@ -67,8 +67,8 @@ function plotErrorPattern(obj,options)
             yyaxis right
             ylabel('Phase error (deg)')
             bar(rad2deg(angle(errPat)),'FaceColor','r','EdgeColor','r')
-            plot([1:M],rad2deg([I_g.Supremum]'),'r--')
-            plot([1:M],rad2deg([I_g.Infimum]'),'r--')
+            plot([1:M],rad2deg(I_g.Supremum),'r--')
+            plot([1:M],rad2deg(I_g.Infimum),'r--')
             ylim([rad2deg(I_phi(1).Infimum)*sep-eps, ...
                   rad2deg(I_phi(1).Supremum)*sep+eps]); 
             yl=ylim();ylim([yl(1) 2*yl(2)-yl(1)])

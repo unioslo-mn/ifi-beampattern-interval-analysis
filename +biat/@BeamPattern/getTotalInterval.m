@@ -36,10 +36,7 @@ function value = getTotalInterval(obj)
         value = sum(arrInt);
     else 
     % Interval
-        value = arrInt(1);
-        for n = 2:obj.ArrayCount
-            value = value + arrInt(n);
-        end
+        value = sum(arrInt);
     end
 end
 

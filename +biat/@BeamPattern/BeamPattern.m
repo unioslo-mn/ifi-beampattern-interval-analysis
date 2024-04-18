@@ -286,7 +286,7 @@ classdef BeamPattern
                 value = abs(obj.TotalInterval)^2;
             else
                 absInt = abs(obj.TotalInterval);
-                value = absInt * absInt ;
+                value = absInt .* absInt ;
             end 
         end
 
