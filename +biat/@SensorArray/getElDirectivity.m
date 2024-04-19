@@ -37,7 +37,7 @@ function value = getElDirectivity(obj,angle)
         value = zeros(M,N);
     else
         cDim = 2;
-        angle = [[angle.Infimum];[angle.Supremum]]';
+        angle = [angle.Infimum , angle.Supremum];
         value(M,N) = ciat.RealInterval(0,0);
     end
     

@@ -20,10 +20,10 @@ LErr = 0.01;
 VErr = 0.01;
 
 % Calculate parameter intervals
-cInt = ciat.RealInterval( cNom * (1+[-1 1]*cErr) );
-AInt = ciat.RealInterval( ANom * (1+[-1 1]*AErr) );
-LInt = ciat.RealInterval( LNom * (1+[-1 1]*LErr) );
-VInt = ciat.RealInterval( VNom * (1+[-1 1]*VErr) );
+cInt = ciat.RealInterval( cNom*(1-cErr) , cNom*(1+cErr) );
+AInt = ciat.RealInterval( ANom*(1-AErr) , ANom*(1+AErr) );
+LInt = ciat.RealInterval( LNom*(1-LErr) , LNom*(1+LErr) );
+VInt = ciat.RealInterval( VNom*(1-VErr) , VNom*(1+VErr) );
 
 % Calculate nominal frequency and frequency interval 
 fNom = f(cNom,ANom,LNom,VNom);

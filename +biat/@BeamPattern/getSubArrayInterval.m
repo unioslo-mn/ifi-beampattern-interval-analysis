@@ -44,7 +44,7 @@ function value = getSubArrayInterval(obj)
                                      obj.Block.OrientError == 0
         % If there is no block orientation error calculate the sum
         % of element intervals
-        value = getElIntSum(elInt);
+        value = sum(elInt);
     else
     % If there is block orientation error, calculate element interval sum
     % for each angle in the interval and then get their union
@@ -63,7 +63,7 @@ function value = getSubArrayInterval(obj)
         subInt(1:length(intBeam),1:nArr) = elInt(1);
         for idx = 1:length(intBeam)
             obj.BeamIndex = intBeam(idx);
-            subInt(idx,:) = getElIntSum(obj.ElementIntervals);
+            subInt(idx,:) = sum(obj.ElementIntervals);
         end
 
         % Calculate the union of array intervals along the beam indeces
@@ -72,19 +72,5 @@ function value = getSubArrayInterval(obj)
             value(iArr) = union( subInt(:,iArr) );
         end
     end
-end
-
-%% 
-
-function value = getElIntSum(elInt)
-    [M,N] = size(elInt);
-    value(1:N) = elInt(1,1);
-    for n = 1:N
-        value(n) = elInt(1,n);
-        for m = 2:M
-            value(n) = value(n) + elInt(m,n);
-        end
-    end
-    
 end
 

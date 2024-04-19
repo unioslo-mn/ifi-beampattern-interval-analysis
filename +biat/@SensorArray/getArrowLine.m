@@ -12,7 +12,7 @@ function [x,y] = getArrowLine(r1,r2,L)
 % _________________________________________________________________________
 % NECESSARY ARGUMENT
 %   r1       : coordinates of the first point as a two-element array
-%   r2       : coordinates of the first point as a two-element array
+%   r2       : coordinates of the second point as a two-element array
 %   L        : absolute length of the arrow head
 % _________________________________________________________________________
 % OPTIONS

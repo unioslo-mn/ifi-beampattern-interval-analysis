@@ -17,7 +17,7 @@ array.ElDiameterRatio = 2*elRad / array.ElPitch;
 DIR = array.getElDirectivity(theta);
 theta_I = ciat.RealInterval(theta -dth, theta+dth);
 temp = array.getElDirectivity(theta_I);
-dir_I = [[temp.Infimum]', [temp.Supremum]'];
+dir_I = [temp.Infimum, temp.Supremum];
 
 % Plot results
 fig = figure(1);

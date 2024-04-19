@@ -111,7 +111,7 @@ dk = (k - k_s);
 phase = dk(1,:) .* [array.ElPosX] + dk(2,:) .* [array.ElPosY];
 dPsi = bp_pol.IncidenceAngle - bp_pol.Arrays.OrientInterval;
 dir = array.getElDirectivity(dPsi);
-vecs =([dir.Midpoint]' .* w_apod) .* exp(1j*phase);
+vecs =(dir.Midpoint .* w_apod) .* exp(1j*phase);
 
 
 % Comment: in the article the origin of the array was defined differently,

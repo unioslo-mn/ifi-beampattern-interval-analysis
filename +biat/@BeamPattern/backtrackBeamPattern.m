@@ -56,16 +56,8 @@ function value = backtrackBeamPattern(obj,options)
         dk = (k - k_ref);
         phase_corr = sum(dk.*[posX, posY],2);
 
-        BP = 0;
-
-        for c = 1:M
-            sum_m = 0;
-            for m = 1:M
-                sum_m = sum_m + w_apod(m) * C_extr(m,c) * exp( -1j * ...
-                                        ( k_s(1)*posX(m) + k_s(2)*posY(m) ));
-            end
-            BP = BP + E_extr(c)*exp(1j*phase_corr(c)) * sum_m;
-        end
+        sum_m = (w_apod .* C_extr).' * exp( -1j * [posX posY] * k_s);
+        BP = (E_extr .* exp(1j*phase_corr)).' * sum_m;
         value(iBeam) = abs(BP).^2;
     end
 end
