@@ -39,7 +39,7 @@ function resetControllers(h)
                     guicp.val.Ste.String = formatValueString(name,...
                                                         ctrl(idx).Value);
                 case 'cbWgh'
-                    ctrl(idx).Value = guicp.array.TaperBeta;
+                    ctrl(idx).Value = guicp.array.TaperParam;
                     guicp.val.Wgh.String = formatValueString(name,...
                                                         ctrl(idx).Value);
                 case 'cbEGn'
