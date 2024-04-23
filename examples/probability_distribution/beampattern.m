@@ -7,12 +7,12 @@ M = 10;
 
 % Error parameters
 errGain = 0.1;
-errPha = deg2rad(5);
-errPsi = deg2rad(1);
+errPha = deg2rad(1);
+errPsi = deg2rad(0);
 
 % Beamforming parameters
 incAngle = deg2rad(-11);
-AngResDeg = 1;
+AngResDeg = 1/2;
 PolTol = 5e-4;
 PolIncl = true;
 
@@ -32,64 +32,72 @@ array = biat.SensorArray(       'ElCount',          M,...
                                 'SteeringAngle',    0);
 
 % Calculate nominal beampattern with tapering
-bp_pgn = biat.BeamPattern(array,'polygonal','BeamResolutionDeg',AngResDeg,...
+bp = biat.BeamPattern(array,'polygonal','BeamResolutionDeg',AngResDeg,...
                                         'PolygonTolerance',PolTol);
-
+bp.plotBeamPattern
 %% Show the complex probabilistic interval sum for a chosen steering angle
 
-bp_pgn.BeamIndex = 72;
-elInt = bp_pgn.ElementIntervals;
+bp.BeamIndex = 72;
+elInt = bp.ElementIntervals;
+elInt = elInt.setProbaGrid("polarnormal", 'nx', 100, 'ny', 100);
+arInt = sum(elInt);
+ppInt = abs2(arInt.ProbaGrid);
 
 % Initialize figure
-figure;clf;hold on
-
-for m = 1:array.ElCount
-    elInt(m).ProbaGrid = ciat.ProbaGrid(elInt(m), ...
-                                "polarnormal", 'nx', 100, 'ny', 100);
-    elInt(m).plot;
-end
-arInt = sum(elInt);
-arInt.plot
-
+figure;clf;
+subplot(2,1,1);hold on
+elInt.plot;
+arInt.plot;
+subplot(2,1,2);hold on
+plot(db(ppInt.x)',ppInt.Pdf)
 
 %% Plot probabilistic beampattern
 
-nx = 100;
-ny = 100;
+nx = 1e2;
+ny = 1e2;
+pCnt = 1e4;
+dinRange = [-60,0];
 
-N = bp_pgn.BeamCount;
-M = array.ElCount;
 
-bp_probPdf = zeros(nx,N); 
-bp_probX = zeros(nx,N); 
+beamCnt = bp.BeamCount;
+pAxis = linspace(2*dinRange(1),2*dinRange(2),pCnt);
+ppPdf = zeros(pCnt,beamCnt);
 
-for n = 1:N
-    bp_pgn.BeamIndex = n;
-    elInt = bp_pgn.ElementIntervals;
-    for m = 1:M
-        elInt(m).ProbaGrid = ciat.ProbaGrid(elInt(m), ...
-                                    "polarnormal", 'nx', nx, 'ny', ny);
-    end
+for beamIdx = 1:beamCnt
+    % Set steering
+    bp.BeamIndex = beamIdx;
+
+    % Calculate element interval sum
+    elInt = bp.ElementIntervals;
+    elInt = elInt.setProbaGrid("polarnormal", 'nx', nx, 'ny', ny);
     arInt = sum(elInt);
-    bp_prob = abs2(arInt.ProbaGrid);
-    bp_probPdf(:,n) = bp_prob.Pdf; 
-    bp_probX(:,n) = bp_prob.x; 
+
+    % Extract power pattern PDF
+    powerInt = abs2(arInt.ProbaGrid);
+    powerPdf = interp1(db(powerInt.x),powerInt.Pdf,pAxis);
+
+    % Replace NaN values with zeros
+    powerPdf(isnan(powerPdf)) = 0;
+
+    % Assign to image
+    ppPdf(:,beamIdx) = flip(powerPdf);
+    fprintf('%0.0f/%0.0f\n',beamIdx,beamCnt)
 end
+%% Plot results
+
+% Calculate beampattern
+bpVal = bp.calculateBeamPattern;
+bpVal(bpVal==0) = eps;
 
 % Initialize figure
+close all
 figure;clf;hold on
 
 % Plot
-bp_pgn.plotBeamPattern
-
-%% 
-
-bp_pgnInt = zeros(1e3,N);
-xInt = linspace(-60,0,1e3);
-
-for n = 1:N
-    bp_pgnInt(:,n) = interp1( db(bp_probX(:,n)) , bp_probPdf(:,n) , xInt );
-    bp_pgnInt(:,n) = bp_pgnInt(:,n) / sum(bp_pgnInt(~isnan(bp_pgnInt(:,n)),n) );
-end
-
-
+imagesc(bp.BeamAngles,pAxis/2,flipud(ppPdf))
+plot(bp.BeamAngles,db(bpVal,'power'))
+ylim(dinRange)
+xlim([-pi/2,pi/2])
+colormap(turbo)
+set(gca,'ColorScale','log')
+colorbar
