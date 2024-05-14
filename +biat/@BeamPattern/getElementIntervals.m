@@ -145,6 +145,20 @@ function value = getElementIntervals(obj,options)
                         end
                     end
                 end
+                case 'polyarcular'
+                if isnumeric(AcI)
+                    value(M,N) = ciat.PolyarcularInterval;  
+                    for n = 1:N
+                        for m = 1:M
+                            value(m,n) = ciat.PolyarcularInterval( ...
+                                            ciat.PolarInterval( ...
+                                                r_I(m,n), ph_I(m,n) ) );
+                        end
+                    end
+                else
+                   value = nan();
+                   warning('Polyarcular type is not implemented for coupling.') 
+                end
             otherwise
                 value = nan();
                 warning('No element interval is implemented for the give type.')
