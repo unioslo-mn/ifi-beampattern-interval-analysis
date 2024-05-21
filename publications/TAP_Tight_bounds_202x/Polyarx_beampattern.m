@@ -35,6 +35,19 @@ tic
 arxBeamPattern = bp_arx.calculateBeamPattern;
 arxTime = toc;
 
+%% Optional: Still under debugging
+
+arcTime = 0;
+arcBeamPattern = zeros(bp_arc.BeamCount,2);
+
+% % Calculate polyarx beampattern 
+% tic
+% for idxBeam = 363 : bp_arc.BeamCount  
+%     bp_arc.BeamIndex = idxBeam;
+%     arcBeamPattern(idxBeam,:) = bp_arc.ArrayInterval.Abs.Bounds.';
+% end
+% arcTime = toc;
+
 %% Plot
 
 %figure;clf
@@ -42,13 +55,16 @@ cla;hold on
 bp_rec.plotBeamPattern('BeamPattern',recBeamPattern,'Color','g','LineWidth',2);
 bp_rec.plotBeamPattern('BeamPattern',gonBeamPattern,'Color','r','LineWidth',2);
 bp_rec.plotBeamPattern('BeamPattern',arxBeamPattern,'Color','c','LineWidth',2,'LineStyle','--');
+bp_rec.plotBeamPattern('BeamPattern',arcBeamPattern,'Color','b','LineWidth',2,'LineStyle','--');
 
 %% Report
 
 
-sprintf(['Rectangular time: %0.1fms\n'...
-         'Polygonal time: %0.1fms\n'...
-         'Polyarx time: %0.1fms\n'], ...
-         recTime*1e3,...
-         gonTime*1e3,...
-         arxTime*1e3);
+sprintf(['Rectangular time: %0.1fs\n'...
+         'Polygonal time: %0.1fs\n'...
+         'Polyarx time: %0.1fs\n',...
+         'Polyarc time: %0.1fs'], ...
+         recTime,...
+         gonTime,...
+         arxTime,...
+         arcTime)
