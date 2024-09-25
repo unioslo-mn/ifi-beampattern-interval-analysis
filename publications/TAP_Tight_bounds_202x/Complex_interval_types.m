@@ -1,82 +1,111 @@
 clear
 % close all
 
-%% Generate three polar intervals
-% Set parameters
-r = [3.0 , 2.5 , 0.6 ; ...
-     4.0 , 3.0 , 0.8];
-a = [1.2 , 0.5 , 0.8 ; ...
-     1.3 , 0.7 , 1.0]*pi;
+%% Generate intervals
 
 % Set intervals
-pI = ciat.PolarInterval(r(1,:), r(2,:), a(1,:), a(2,:));
+E = ciat.PolarInterval(2.0 , 2.5 , 0.05*pi, 0.10*pi);
+E(2) = ciat.PolarInterval(2.0 , 2.5 , -0.1*pi, -0.2*pi);
+A = ciat.CircularInterval(1.8,0.15);
+A(2) = ciat.CircularInterval(2.2,0.15);
 
-%% Wrap intervals in various types
-prI = ciat.RectangularInterval(pI); 
-pcI = ciat.CircularInterval(pI);    
-pgI = ciat.PolygonalInterval(pI,'Tolerance',0.1); 
-paI = ciat.PolyarcularInterval(pI); 
-pxI = ciat.PolyarxInterval(pI);
+% Wrap intervals in various types
+Er = ciat.RectangularInterval(E); 
+Ec = ciat.CircularInterval(E);    
+Eg = ciat.PolygonalInterval(E,'Tolerance',0.1); 
+Ex = ciat.PolyarxInterval(E);
+Ar = ciat.RectangularInterval(A); 
+Ac = A;    
 
-%% Sum the first two intervals
-prIs = prI(1) + prI(2); 
-pcIs = pcI(1) + pcI(2); 
-pgIs = pgI(1) + pgI(2); 
-paIs = paI(1) + paI(2); 
-pxIs = pxI(1) + pxI(2);
+% Multiply E and A
+EAr = Er .* Ar; 
+EAc = Ec .* Ac; 
+EAg = ciat.PolygonalInterval(E,A,'Tolerance',0.1); 
+EAx = ciat.PolyarxInterval(E,A); 
 
-%% Multiply the sum with the third interval
-prIp = prIs * prI(3); 
-pcIp = pcIs * pcI(3); 
-pgIp = pgIs * pgI(3); 
-pxIp = pxIs * pI(3);
 
-%% Sample true sum and multiply with polar samples
-paIs_smp = paIs.sample(100);
-pI3_smp = pI(3).sample(100);
-paIp_smp = paIs_smp{:} * pI3_smp{:}.';
-paIp_ind = boundary(real(paIp_smp(:)),imag(paIp_smp(:)),0.5);
-paIp = paIp_smp(paIp_ind);
+% Sum the EA intervals
+Br = sum(EAr);
+Bc = sum(EAc);
+Bg = sum(EAg);
+Bx = sum(EAx);
+
+
+%% Sample intervals
+
+% Set parameters
+Nsmp = 100;
+
+% Sample E and A intervals
+Es = E.sample(Nsmp);
+As = A.sample(Nsmp);
+
+% Multiply E and A intervals
+EAs{1} = Es{1} * As{1}.';
+EAs{2} = Es{2} * As{2}.';
+
+% Sum EA intervals
+Bs = EAs{1}(:) + EAs{2}(:).';
+
+% Get convex hulls
+idx = convhull(real(EAs{1}),imag(EAs{1}));
+EAs{1} = EAs{1}(idx);
+idx = convhull(real(EAs{2}),imag(EAs{2}));
+EAs{2} = EAs{2}(idx);
+idx = convhull(real(Bs),imag(Bs));
+Bs = Bs(idx);
+
 
 %% Plot
 figure(1);clf;hold on;axis equal
 set(0,'DefaultLineLineWidth',2)
 
-% Plot intervals
-pI.plot('k--','DisplayName','Interval');
+% Plot wraps of E intervals
+Er.plot('b','DisplayName','Rectangular');
+Ec.plot('c','DisplayName','Circular');
+Eg.plot('r','DisplayName','Polygonal (convex)');
+Ex.plot('g','DisplayName','Polyarcular (convex)');
+Ar.plot('b');
+Ac.plot('c');
 
-% Plot wraps
-prI.plot('b','DisplayName','Rectangular');
-pcI.plot('c','DisplayName','Circular');
-pgI.plot('r','DisplayName','Polygonal');
-pxI.plot('g','DisplayName','Polyarcular');
+% Plot true intervals
+E.plot('k--','DisplayName','Exact interval');
+A.plot('k--');
 
 % Add legend without update
-legend(legendUnq(gcf),'AutoUpdate',0)
+legend(legendUnq(gcf),'Location','southwest','AutoUpdate',false)
 
 % Plot origin
 plot(0,0,'k+')
 
-% Plot sums
-prIs.plot('b');
-pcIs.plot('c');
-pgIs.plot('r');
-pxIs.plot('g');
-paIs.plot('k--');
+% Plot EA intervals
+EAr.plot('b');
+EAc.plot('c');
+EAg.plot('r');
+EAx.plot('g');
+plot(real(EAs{1}),imag(EAs{1}),'k--')
+plot(real(EAs{2}),imag(EAs{2}),'k--')
 
-% Plot products
-prIp.plot('b');
-pcIp.plot('c');
-pgIp.plot('r');
-pxIp.plot('g');
-plot(real(paIp),imag(paIp),'k--')
+% Plot B interval
+Br.plot('b');
+Bc.plot('c');
+Bg.plot('r');
+Bx.plot('g');
+plot(real(Bs),imag(Bs),'k--')
+
+% Plot samples
+% scatter(real(EAs{1}),imag(EAs{1}),1,'k.')
+% scatter(real(EAs{2}),imag(EAs{2}),1,'k.')
+% scatter(real(Bs),imag(Bs),1,'k.')
 
 % Add texts
-text(real(pcI(1).Center),imag(pcI(1).Center),'A')
-text(real(pcI(2).Center),imag(pcI(2).Center),'B')
-text(real(pcI(3).Center),imag(pcI(3).Center),'C')
-text(real(pcIs.Center),imag(pcIs.Center),'A+B')
-text(real(pcIp.Center),imag(pcIp.Center),'(A+B)xC')
+text(real(Ec(1).Center),imag(Ec(1).Center),'E_1','HorizontalAlignment', 'center')
+text(real(Ec(2).Center),imag(Ec(2).Center),'E_2','HorizontalAlignment', 'center')
+text(real(EAc(1).Center),imag(EAc(1).Center),'E_1 A','HorizontalAlignment', 'center')
+text(real(EAc(2).Center),imag(EAc(2).Center),'E_2 A','HorizontalAlignment', 'center')
+text(real(Ac(1).Center),imag(Ac(1).Center),'A_1','HorizontalAlignment', 'center')
+text(real(Ac(2).Center),imag(Ac(2).Center),'A_2','HorizontalAlignment', 'center')
+text(real(Bc.Center),imag(Bc.Center),'B=E_1 A + E_2 A','HorizontalAlignment', 'center')
 fontsize(20,'points')
 
 % Plot axes
