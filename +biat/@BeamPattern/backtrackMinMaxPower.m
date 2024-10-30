@@ -42,21 +42,20 @@ function value = backtrackMinMaxPower(obj,options)
         arrayInt = obj.ArrayInterval;
         elemInt = obj.ElementIntervals;
         for n = 1:N
-            
+            points = arrayInt(n).Points;
             if options.getMax
-                [~, extreme_idx] = max(abs(arrayInt(n).Points));
-                extreme_angle = wrapTo2Pi( angle( ...
-                                        arrayInt(n).Points(extreme_idx)));
+                [~, extreme_idx] = max(abs(points));
+                extreme_angle = wrapTo2Pi( angle( points (extreme_idx)));
             else
-                if inpolygon(0,0,real(arrayInt(n).Points),...
-                                 imag(arrayInt(n).Points))
+                if inpolygon(0,0,real(points),...
+                                 imag(points))
                     value = [];
                     warning('Minimum power cannot be backtracked.')
                     return
                 end
-                [~, extreme_idx] = min(abs(arrayInt(n).Points));
+                [~, extreme_idx] = min(abs(points));
                 extreme_angle = wrapTo2Pi( angle( ...
-                                    arrayInt(n).Points(extreme_idx)) - pi );
+                                    points(extreme_idx)) - pi );
             end
 
             cpxIntv = elemInt(:,n);
