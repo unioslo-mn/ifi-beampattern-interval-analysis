@@ -42,7 +42,7 @@ function value = backtrackMinMaxPower(obj,options)
         arrayInt = obj.ArrayInterval;
         elemInt = obj.ElementIntervals;
         for n = 1:N
-            points = arrayInt(n).Points{:};
+            points = arrayInt(n).Points;
             if options.getMax
                 [~, extreme_idx] = max(abs(points));
                 extreme_angle = wrapTo2Pi( angle( points (extreme_idx)));
@@ -72,7 +72,7 @@ end
 %%
 function point = findPoint(cpxIntv,extreme_angle)
     eps10 = 10*eps;
-    v = cpxIntv.Points{:};
+    v = cpxIntv.Points;
     prev_angle = wrapTo2Pi( angle( v(1) - v(end) )- pi/2); % init prev angle
     point = v(end); % just assume it is the final point to avoid extra condition later
     for j = 1 : length(v)-1

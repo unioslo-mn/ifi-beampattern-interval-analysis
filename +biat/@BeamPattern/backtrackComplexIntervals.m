@@ -110,7 +110,6 @@ function [E_extr,C_extr] = getCInt(array,incAngle,extreme_points)
         % this block could be made analytical... (CONSIDER REPLACE)
         circSmpCnt = 100; % Replace this with polygon tolerance
         E_inv_sample = E_inv.sample(circSmpCnt);
-        E_inv_sample = E_inv_sample{:};
         [~, min_idx] = min( abs( E_inv_sample - AcI_center(iInt) ) );
         A_marked = E_inv_sample(min_idx);
 
