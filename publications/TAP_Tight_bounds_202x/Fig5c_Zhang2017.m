@@ -2,17 +2,24 @@ clear
 % close all
 
 %% Zhang 2017 (amplitude and phase errors)
-N = 10;
+M = 8;
+w = taylorwin(M,3,-20);w = w / sum(w);
+theta = deg2rad(40);
+
+% Set errors
 ampErr = 0.1;
-phaErr = deg2rad(10);
-w = taylorwin(N,3,-20);
+phaErr = deg2rad(5);
+
+% Calculate nominal element phase 
+phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
+
+% Calculate amplitude interval
 A = w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2));
-dTheta = 0.9;
-theta = linspace(-pi,pi,N)' * dTheta;
 
 % Define and cast intervals
-AF_nom = w .* exp(1i*theta);
-AF_p = ciat.PolarInterval(A,ciat.RealInterval(theta + [-1 1]*phaErr/2));
+AF_nom = w .* exp(1i*phi);
+AF_p = ciat.PolarInterval(w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2)),...
+                          ciat.RealInterval(phi + [-1 1]*phaErr/2));
 AF_r = ciat.RectangularInterval(AF_p);
 AF_g = ciat.PolygonalInterval(AF_p,'tolerance',1e-3);
 AF_x = ciat.PolyarxInterval(AF_p);
@@ -44,11 +51,9 @@ set(gca,'DefaultLineLineWidth',lineWidthL)
 plot(0,0,'k+')
 
 % Plot operand intervals
-AF_p.plot('m','linewidth',lineWidthL);
 AF_r.plot('c','linewidth',lineWidthL);
 AF_g.plot('b','linewidth',lineWidthL);
 AF_x.plot('r','linewidth',lineWidthM);
-AF_a.plot('g','linewidth',lineWidthS);
 
 % Plot sum intervals
 lA = B_r.plot('c','linewidth',lineWidthL,'DisplayName','Rectangular');
@@ -77,19 +82,19 @@ fimplicit(@(x,y) x.^2+y.^2-P_x.inf,fBox,'r:','linewidth',lineWidthM);
 
 
 % Set figure limits
-xlim(xL); ylim(yL)
+xlim(xL-0.03); ylim(yL)
 
 
 % Interval label
-for n = 1:N
-    text(real(AF_nom(n))+0.15,imag(AF_nom(n)),['$E_{' num2str(n) '}^I$'], ...
+for m = 1:M
+    text(real(AF_nom(m))+0.02,imag(AF_nom(m)),['$E_{' num2str(m) '}^I$'], ...
                 'HorizontalAlignment','center', 'Interpreter','latex')
 end
 text(B_r.real.mid,B_r.imag.mid,'$B^I\!=\!\sum_n E_n^I$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
-text(sqrt(P_g.inf)-0.1,0,'$\underline{|B^I|}$',...
+text(sqrt(P_g.inf)-0.01,0,'$\underline{|B^I|}$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
-text(sqrt(P_g.sup)+0.18,0,'$\overline{|B^I|}$',...
+text(sqrt(P_g.sup)+0.01,0,'$\overline{|B^I|}$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
 
 % Add two legend windows
@@ -110,20 +115,20 @@ annotation('textbox',[0.30 0.45 .15 0.20],'String',annotText, ...
            'Interpreter','latex');
 
 % Add zoom window for the operand interval
-axes('position',[.14 .13 .12 .25]); hold on; box on
+axes('position',[.14 .13 .11 .25]); hold on; box on
 AF_r.plot('c','linewidth',lineWidthL);
 AF_g.plot('b','linewidth',lineWidthL);
 AF_x.plot('r','linewidth',lineWidthS);
 axis equal
-xlim([-0.55 -0.42])
+xlim([0.0585 0.0775])
 xticks(-0.5)
 xtickangle(90)
 set(gca, 'XAxisLocation', 'top')
-ylim([0.6 0.72])
+ylim([0.112 0.133])
 yticks(0.63)
 set(gca, 'YAxisLocation', 'right')
-n=9;
-text(real(AF_nom(n)),imag(AF_nom(n))+0.01,['$E_{' num2str(n) '}^I$'], ...
+m=6;
+text(real(AF_nom(m)),imag(AF_nom(m)),['$E_{' num2str(m) '}^I$'], ...
                 'HorizontalAlignment','center', 'Interpreter','latex')
 
 % Add zoom window for the infimum
@@ -132,13 +137,13 @@ fimplicit(@(x,y) x.^2+y.^2-P_r.inf,fBox,'c-.','linewidth',lineWidthL);
 fimplicit(@(x,y) x.^2+y.^2-P_g.inf,fBox,'b--','linewidth',lineWidthL);
 fimplicit(@(x,y) x.^2+y.^2-P_x.inf,fBox,'r:','linewidth',lineWidthL);
 axis equal
-xlim([0.91 0.93])
+xlim([0.195 0.196])
 xticks([])
 xtickangle(90)
 set(gca, 'XAxisLocation', 'top')
 yticks(0)
 yticklabels('0')
-text(sqrt(P_g.inf)-0.007,0,'$\underline{|B^I|}$',...
+text(sqrt(P_g.inf+0.0002),0,'$\underline{|B^I|}$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
 
 
@@ -148,12 +153,12 @@ fimplicit(@(x,y) x.^2+y.^2-P_r.sup,fBox,'c-.','linewidth',lineWidthL);
 fimplicit(@(x,y) x.^2+y.^2-P_g.sup,fBox,'b:','linewidth',lineWidthL);
 fimplicit(@(x,y) x.^2+y.^2-P_x.sup,fBox,'r:','linewidth',lineWidthL);
 axis equal
-xlim([2.195 2.2])
+xlim([0.315 0.325])
 xticks(1.9)
 set(gca, 'XAxisLocation', 'top')
 xtickangle(90)
 yticks(0)
-text(sqrt(P_g.sup)-0.003,0,'$\overline{|B^I|}$',...
+text(sqrt(P_g.sup)+0.003,0,'$\overline{|B^I|}$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
 
 % Set font size

@@ -3,18 +3,19 @@ clear
 
 %% Poli 2015 (phase errors)
 
-N = 10;
-ampErr = 0.1;
-phaErr = deg2rad(10);
-w = taylorwin(N,3,-20);
-% w = ones(N,1);
-A = w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2));
-dTheta = 0.9;
-theta = linspace(-pi,pi,N)' * dTheta;
+M = 8;
+w = taylorwin(M,3,-20);w = w / sum(w);
+theta = deg2rad(40);
+
+% Set errors
+phaErr = deg2rad(5);
+
+% Calculate nominal element phase 
+phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
 
 % Define and cast intervals
-AF_nom = w .* exp(1i*theta);
-AF_p = ciat.PolarInterval(w , ciat.RealInterval(theta + [-1 1]*phaErr/2));
+AF_nom = w .* exp(1i*phi);
+AF_p = ciat.PolarInterval(w , ciat.RealInterval(phi + [-1 1]*phaErr/2));
 AF_r = ciat.RectangularInterval(AF_p);
 AF_g = ciat.PolygonalInterval(AF_p,'tolerance',1e-3);
 AF_x = ciat.PolyarxInterval(AF_p);
@@ -80,11 +81,11 @@ fimplicit(@(x,y) x.^2+y.^2-P_x.inf,fBox,'r:','linewidth',lineWidthM);
 
 
 % Set figure limits
-xlim(xL-0.15); ylim(yL)
+xlim(xL); ylim(yL)
 
 % Interval label
-for n = 1:N
-    text(real(AF_nom(n))-0.05,imag(AF_nom(n)),['$E_{' num2str(n) '}^I$'], ...
+for m = 1:M
+    text(real(AF_nom(m))-0.05,imag(AF_nom(m)),['$E_{' num2str(m) '}^I$'], ...
                 'HorizontalAlignment','right', 'Interpreter','latex')
 end
 text(B_r.real.mid,B_r.imag.mid,'$B^I\!=\!\sum_n E_n^I$',...
@@ -122,8 +123,8 @@ set(gca, 'XAxisLocation', 'top')
 ylim([0.62 0.70])
 yticks(0.63)
 set(gca, 'YAxisLocation', 'right')
-n=9;
-text(real(AF_nom(n)),imag(AF_nom(n))+0.01,['$E_{' num2str(n) '}^I$'], ...
+m=6;
+text(real(AF_nom(m)),imag(AF_nom(m))+0.01,['$E_{' num2str(m) '}^I$'], ...
                 'HorizontalAlignment','right', 'Interpreter','latex')
 
 % Add zoom window for the infimum

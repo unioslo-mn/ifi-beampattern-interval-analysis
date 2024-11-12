@@ -5,39 +5,38 @@ clear
 
 % Set parameters
 M = 8;
-SNR = 20;
-% alpha = [5 5 10 10 10 10 5 5]'*1e-2;
-% beta = [1 2 3 4 3 2 1]' * 1e-2;
-dTheta = 0.85;
-theta = linspace(-pi,pi,M)' * dTheta;
-w = chebwin(M,SNR) ; w = w / sum(w);
-v = exp(1j*theta);
+w = taylorwin(M,3,-20); w = w / sum(w);
+theta = deg2rad(13);
+
+% Calculate nominal element phase 
+phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
+v = exp(1j*phi);
+
+% Calculate nominal beampattern interval
 B = w' * v;
 
 % Set error
 ampErr = 0.1;
-phaErr = deg2rad(10);
+phaErr = deg2rad(1);
 gamma = 0.05;
-
-% Generate polar and circular intervals
-% Eint = ciat.PolarInterval(w.*(1+[-1 1].*alpha*0.75) , angle(v')' + [-1 1].*phaErr*pi);
-Eint = ciat.PolarInterval(w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2)),...
-                          ciat.RealInterval(theta + [-1 1]*phaErr/2));
-% alpha = ciat.CircularInterval(Eint).Radius ./ w;
 alpha = ones(M,1) * sqrt(ampErr^2 + sin(phaErr)^2)/2;
 beta = ones(M-1,1)*gamma;
+
+% Generate polar and circular intervals
+Eint = ciat.PolarInterval(w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2)),...
+                          ciat.RealInterval(phi + [-1 1]*phaErr/2));
 Aint = ciat.CircularInterval(zeros(M,1) , [0;beta]+[beta;0]);
 
 % Element intervals (coupled)
 AF_nom = w .* v;
 AF_g = ciat.PolygonalInterval( Eint , ones(M,1)+Aint ,'tolerance',1e-3);
 AF_x = ciat.PolyarxInterval( Eint , ones(M,1)+Aint );
-AF_a = ciat.PolyarcularInterval( Eint , ones(M,1)+Aint );
+% AF_a = ciat.PolyarcularInterval( Eint , ones(M,1)+Aint );
 
 % Beampattern interval
 B_g = sum(AF_g);
 B_x = sum(AF_x);
-B_a = sum(AF_a);
+% B_a = sum(AF_a);
 
 % Schmid method
 wL2 = sqrt(sum(abs(w)*.2));
@@ -63,7 +62,7 @@ P_Sch = abs(B_Sch).^2;
 P_Ans = abs(B_Ans).^2;
 P_g = abs(B_g).^2;
 P_x = abs(B_x).^2;
-P_a = abs(B_a).^2;
+% P_a = abs(B_a).^2;
 
 
 %% Plot
@@ -72,7 +71,7 @@ P_a = abs(B_a).^2;
 lineWidthM = 4;
 lineWidthS = 3;
 lineWidthXS = 1; 
-fBox = [0 0.5 -1.1 1.1];
+fBox = [0 0.5 -0.1 0.1];
 
 % Plot
 figure(1);clf;hold on;axis equal;
@@ -142,13 +141,13 @@ legend(ax2, [l1,l2,l3,l4], 'Location','northeast');
 
 % Tightness values
 annotText = {   ['$\tau_{P^I}^{\mathrm{(Sc)}}=' ...
-                num2str(100*P_a.Width ./ P_Sch.Width,3) '\%$'],...
+                num2str(100*P_x.Width ./ P_Sch.Width,3) '\%$'],...
                 ['$\tau_{P^I}^{\mathrm{(An)}}=' ...
-                num2str(100*P_a.Width ./ P_Ans.Width,3) '\%$'],...
+                num2str(100*P_x.Width ./ P_Ans.Width,3) '\%$'],...
                ['$\tau_{P^I}^{\mathrm{(Te)}}=' ...
-               num2str(100*P_a.Width ./ P_g.Width,3) '\%$'],...
+               num2str(100*P_x.Width ./ P_g.Width,3) '\%$'],...
                ['$\tau_{P^I}^{\mathrm{(Ge)}}=' ...
-               num2str(100*P_a.Width ./ P_x.Width,3) '\%$']};
+               num2str(100*P_x.Width ./ P_x.Width,3) '\%$']};
 annotation('textbox',[0.14 0.13 .14 0.25],'String',annotText, ...
            'BackgroundColor','w',...
            'HorizontalAlignment','right', ...

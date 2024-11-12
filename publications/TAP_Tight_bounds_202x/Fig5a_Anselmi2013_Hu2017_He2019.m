@@ -2,16 +2,28 @@ clear
 % close all
 
 %% Anselmi 2013 and Hu 2017 (amplitude errors)
-N = 10;
+
+% Set parameters
+M = 8;
+w = taylorwin(M,3,-20);w = w / sum(w);
+theta = deg2rad(13);
+
+% Set errors
 ampErr = 0.1;
-w = taylorwin(N,3,-20);
+
+% Calculate nominal element phase 
+phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
+
+% Calculate amplitude interval
 A = w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2));
-dTheta = 0.9;
-theta = linspace(-pi,pi,N)' * dTheta;
+
+% Calculate nominal beampattern and power pattern
+AF_nom = w .* exp(1j*phi);
+B_nom = sum(AF_nom);
+P_nom = abs(B_nom)^2;
 
 % Define and cast intervals
-AF_nom = w .* exp(1j*theta);
-AF_p = ciat.PolarInterval(A,ciat.RealInterval(theta));
+AF_p = ciat.PolarInterval(A,ciat.RealInterval(phi));
 AF_r = ciat.RectangularInterval(AF_p);
 AF_g = ciat.PolygonalInterval(AF_p);
 AF_a = ciat.PolyarcularInterval(AF_p);
@@ -32,21 +44,23 @@ P_x = abs(B_x)^2;
 P_An = abs(B_r)^2;
 
 % Hu's Taylor based approximation
-A_R = sum(A .* cos(theta));
-A_I = sum(A .* sin(theta));
-P_Hu_d = 2*cos(theta) .* A_R + 2*sin(theta) .* A_I;
-P_Hu_0 = abs(sum(w .* exp(1j*theta)))^2;
+A_R = sum(A .* cos(phi));
+A_I = sum(A .* sin(phi));
+P_Hu_d = 2*cos(phi) .* A_R + 2*sin(phi) .* A_I;
+P_Hu_0 = abs(sum(w .* exp(1j*phi)))^2;
 P_Hu_U = P_Hu_0 + sum( abs(P_Hu_d.sup) .* A.width/2 );
 P_Hu_I = P_Hu_0 - sum( abs(P_Hu_d.inf) .* A.width/2 );
+P_Hu_I (P_Hu_I<0) = 0;
 P_Hu = ciat.RealInterval(P_Hu_I,P_Hu_U);
 
 % He's matrix method
 a_mid = A.mid';
 a_rad = A.width'/2;
-Theta = cos(theta - theta');
-P_He_mid = abs(sum(w .* exp(1j*theta)))^2;
-P_He_inf = P_He_mid - 2 * abs(a_mid * Theta) * a_rad';
+Theta = cos(phi - phi');
+P_He_mid = abs(sum(w .* exp(1j*phi)))^2;
 P_He_sup = P_He_mid + 2 * abs(a_mid * Theta) * a_rad' + a_rad * abs(Theta)*a_rad';
+P_He_inf = P_He_mid - 2 * abs(a_mid * Theta) * a_rad';
+P_He_inf(P_He_inf<0) = 0;
 P_He = ciat.RealInterval(P_He_inf,P_He_sup);
 
 %% Plot
@@ -79,15 +93,15 @@ lC = B_x.plot('r','linewidth',lineWidthS,'DisplayName','Polyarcular');
 xL = xlim(); yL = ylim();
 
 % Interval label
-for n = 1:N
-    text(real(AF_nom(n))-0.05,imag(AF_nom(n)),['$E_{' num2str(n) '}^I$'], ...
-                'HorizontalAlignment','right', 'Interpreter','latex')
+for n = 1:M
+    text(real(AF_nom(n))+0.01,imag(AF_nom(n)),['$E_{' num2str(n) '}^I$'], ...
+                'HorizontalAlignment','center', 'Interpreter','latex')
 end
 text(B_r.real.mid,B_r.imag.mid,'$B^I\!=\!\sum_n E_n^I$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
-text(B_r.real.mid-0.5,B_r.imag.mid,'$\underline{|B^I|}$',...
+text(B_r.real.mid-0.05,B_r.imag.mid,'$\underline{|B^I|}$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
-text(B_r.real.mid+0.5,B_r.imag.mid,'$\overline{|B^I|}$',...
+text(B_r.real.mid+0.05,B_r.imag.mid,'$\overline{|B^I|}$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
 
 % Anselmi
@@ -113,7 +127,7 @@ l5 = fimplicit(@(x,y) x.^2+y.^2-P_x.sup,fBox,'r:','linewidth',lineWidthM,...
 fimplicit(@(x,y) x.^2+y.^2-P_x.inf,fBox,'r:','linewidth',lineWidthM)
 
 % Set figure limits
-xlim(xL-0.1); ylim(yL)
+xlim(xL); ylim(yL)
 
 % Add two legend windows
 legend([lA(1),lB(1),lC(1)],'Location','NorthWest')
@@ -139,15 +153,15 @@ AF_p.plot('b','linewidth',lineWidthL);
 AF_r.plot('c','linewidth',lineWidthL);
 AF_x.plot('r','linewidth',lineWidthS);
 axis equal
-xlim([-0.51 -0.45])
+xlim([0.064 0.073])
 xticks(-0.5)
 xtickangle(90)
 set(gca, 'XAxisLocation', 'top')
-ylim([0.62 0.70])
+ylim([0.115 0.128])
 yticks(0.65)
 set(gca, 'YAxisLocation', 'right')
 n=6;
-text(real(AF_nom(n)),imag(AF_nom(n))-0.01,['$E_{' num2str(n) '}^I$'], ...
+text(real(AF_nom(n)),imag(AF_nom(n))+0.001,['$E_{' num2str(n) '}^I$'], ...
                 'HorizontalAlignment','right', 'Interpreter','latex')
 
 % Add zoom window for the infimum
@@ -159,12 +173,12 @@ fimplicit(@(x,y) x.^2 + y.^2 - P_He.inf,'m:','linewidth',lineWidthL)
 fimplicit(@(x,y) x.^2+y.^2-(inf(abs(B_g)))^2,'b--','linewidth',lineWidthL)
 fimplicit(@(x,y) x.^2+y.^2-P_x.inf,fBox,'r:','linewidth',lineWidthM);
 axis equal
-xlim([1.20 1.27])
+xlim([0.222 0.227])
 xticks(1.2)
 xtickangle(90)
 set(gca, 'XAxisLocation', 'top')
 yticks(0)
-text(sqrt(P_Hu.inf+0.03),0,'$\underline{|B^I|}$',...
+text(sqrt(P_Hu.inf-0.0005),0,'$\underline{|B^I|}$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
 
 
@@ -177,7 +191,7 @@ fimplicit(@(x,y) x.^2 + y.^2 - P_He.sup,'m:','linewidth',lineWidthL)
 fimplicit(@(x,y) x.^2+y.^2-P_g.sup,'b--','linewidth',lineWidthL)
 fimplicit(@(x,y) x.^2+y.^2-P_x.sup,fBox,'r:','linewidth',lineWidthM);
 axis equal
-xlim([1.85 1.92])
+xlim([0.286 0.290])
 xticks(1.9)
 set(gca, 'XAxisLocation', 'top')
 % ylim([-0.1 0.1])
