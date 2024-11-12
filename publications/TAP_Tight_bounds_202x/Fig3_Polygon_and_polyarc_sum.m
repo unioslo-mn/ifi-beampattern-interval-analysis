@@ -40,7 +40,8 @@ pntFontSize = 20;
 vectorSize = 0.5;
 
 % Initialize figure
-figure(1);clf;hold on;axis equal;fontsize(20,'point')
+figure(1);
+clf;hold on;axis equal;fontsize(20,'point')
 
 % Plot intervals, vertices and arcs
 p1 = aI.plot('g','linewidth',defLineWidth,'DisplayName','Concave polyarc');
