@@ -3,12 +3,14 @@ clear
 
 %% Poli 2015 (phase errors)
 
-M = 8;
-w = taylorwin(M,3,-20);w = w / sum(w);
-theta = deg2rad(40);
-
-% Set errors
-phaErr = deg2rad(5);
+% Set parameters
+conf = getFig5conf(1);
+M = conf.M;
+w = conf.w;
+theta = conf.theta;
+phaErr = conf.phaErr;
+xL = conf.xL;
+yL = conf.yL;
 
 % Calculate nominal element phase 
 phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
@@ -17,7 +19,7 @@ phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
 AF_nom = w .* exp(1i*phi);
 AF_p = ciat.PolarInterval(w , ciat.RealInterval(phi + [-1 1]*phaErr/2));
 AF_r = ciat.RectangularInterval(AF_p);
-AF_g = ciat.PolygonalInterval(AF_p,'tolerance',1e-3);
+AF_g = ciat.PolygonalInterval(AF_p,'tolerance',1e-4);
 AF_x = ciat.PolyarxInterval(AF_p);
 AF_a = ciat.PolyarcularInterval(AF_p);
 
@@ -40,10 +42,10 @@ P_a = abs(B_a).^2;
 lineWidthL = 4;
 lineWidthM = 3;
 lineWidthS = 2;
-fBox = [0 2 B_r.Imag.inf B_r.Imag.sup];
+fBox = [0 2 B_x.Imag.inf B_x.Imag.sup];
 
 % Plot
-figure(1);clf;hold on;axis equal;
+figure(2);clf;hold on;axis equal;
 set(gca,'DefaultLineLineWidth',lineWidthL)
 plot(0,0,'k+')
 
@@ -62,9 +64,6 @@ lC = B_x.plot('r','linewidth',lineWidthS,'DisplayName','Polyarcular');
 % Axis labels
 xlabel('Real')
 ylabel('Imag')
-
-% Get figure limits
-xL = xlim(); yL = ylim();
 
 % Plot supremum
 l1 = fimplicit(@(x,y) x.^2+y.^2-P_r.sup,fBox,'c-.','linewidth',lineWidthM,...
@@ -88,7 +87,7 @@ for m = 1:M
     text(real(AF_nom(m))-0.05,imag(AF_nom(m)),['$E_{' num2str(m) '}^I$'], ...
                 'HorizontalAlignment','right', 'Interpreter','latex')
 end
-text(B_r.real.mid,B_r.imag.mid,'$B^I\!=\!\sum_n E_n^I$',...
+text(B_r.real.mid,B_r.imag.mid,'$B^I$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
 text(B_r.real.mid-0.5,B_r.imag.mid,'$\underline{|B^I|}$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
@@ -105,7 +104,7 @@ legend(ax2, [l1,l2,l3], 'Location','northeast');
 annotText = {['$\tau_{P^I}^{\mathrm{(Po)}}=' num2str(100*P_a.Width ./ P_r.Width,3) '\%$'],...
                ['$\tau_{P^I}^{\mathrm{(Te)}}=' num2str(100*P_a.Width ./ P_g.Width,3) '\%$'],...
                ['$\tau_{P^I}^{\mathrm{(Ge)}}=' num2str(100*P_a.Width ./ P_x.Width,3) '\%$']};
-annotation('textbox',[0.37 0.42 0.15 0.20],'String',annotText, ...
+annotation('textbox',[0.131 0.13 .14 0.25],'String',annotText, ...
            'BackgroundColor','w',...
            'HorizontalAlignment','right', ...
            'Interpreter','latex');

@@ -2,13 +2,16 @@ clear
 % close all
 
 %% Zhang 2017 (amplitude and phase errors)
-M = 8;
-w = taylorwin(M,3,-20);w = w / sum(w);
-theta = deg2rad(40);
 
-% Set errors
-ampErr = 0.1;
-phaErr = deg2rad(5);
+% Set parameters
+conf = getFig5conf(1);
+M = conf.M;
+w = conf.w;
+theta = conf.theta;
+ampErr = conf.ampErr;
+phaErr = conf.phaErr;
+xL = conf.xL;
+yL = conf.yL;
 
 % Calculate nominal element phase 
 phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
@@ -21,7 +24,7 @@ AF_nom = w .* exp(1i*phi);
 AF_p = ciat.PolarInterval(w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2)),...
                           ciat.RealInterval(phi + [-1 1]*phaErr/2));
 AF_r = ciat.RectangularInterval(AF_p);
-AF_g = ciat.PolygonalInterval(AF_p,'tolerance',1e-3);
+AF_g = ciat.PolygonalInterval(AF_p,'tolerance',1/(1000*8));%1e-3);
 AF_x = ciat.PolyarxInterval(AF_p);
 AF_a = ciat.PolyarcularInterval(AF_p);
 
@@ -46,7 +49,7 @@ lineWidthS = 2;
 fBox = [0 3 B_r.Imag.inf B_r.Imag.sup];
 
 % Plot
-figure(1);clf;hold on;axis equal;
+figure(3);clf;hold on;axis equal;
 set(gca,'DefaultLineLineWidth',lineWidthL)
 plot(0,0,'k+')
 
@@ -64,9 +67,6 @@ lC = B_x.plot('r','linewidth',lineWidthM,'DisplayName','Polyarcular');
 xlabel('Real')
 ylabel('Imag')
 
-% Get figure limits
-xL = xlim(); yL = ylim();
-
 % Plot supremum
 l1 = fimplicit(@(x,y) x.^2+y.^2-P_r.sup,fBox,'c-.','linewidth',lineWidthM,...
                                     'DisplayName','Zhang');
@@ -82,7 +82,7 @@ fimplicit(@(x,y) x.^2+y.^2-P_x.inf,fBox,'r:','linewidth',lineWidthM);
 
 
 % Set figure limits
-xlim(xL-0.03); ylim(yL)
+xlim(xL); ylim(yL)
 
 
 % Interval label
@@ -90,7 +90,7 @@ for m = 1:M
     text(real(AF_nom(m))+0.02,imag(AF_nom(m)),['$E_{' num2str(m) '}^I$'], ...
                 'HorizontalAlignment','center', 'Interpreter','latex')
 end
-text(B_r.real.mid,B_r.imag.mid,'$B^I\!=\!\sum_n E_n^I$',...
+text(B_r.real.mid,B_r.imag.mid,'$B^I$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
 text(sqrt(P_g.inf)-0.01,0,'$\underline{|B^I|}$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
@@ -109,7 +109,7 @@ annotText = {['$\tau_{P^I}^{\mathrm{(Zh)}}=' ...
                num2str(100*P_a.Width ./ P_g.Width,3) '\%$'],...
                ['$\tau_{P^I}^{\mathrm{(Ge)}}=' ...
                num2str(100*P_a.Width ./ P_x.Width,3) '\%$']};
-annotation('textbox',[0.30 0.45 .15 0.20],'String',annotText, ...
+annotation('textbox',[0.131 0.13 .14 0.25],'String',annotText, ...
            'BackgroundColor','w',...
            'HorizontalAlignment','right', ...
            'Interpreter','latex');

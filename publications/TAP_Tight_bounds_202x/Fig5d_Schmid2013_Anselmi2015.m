@@ -4,9 +4,16 @@ clear
 %%
 
 % Set parameters
-M = 8;
-w = taylorwin(M,3,-20); w = w / sum(w);
-theta = deg2rad(13);
+conf = getFig5conf(1);
+M = conf.M;
+w = conf.w;
+theta = conf.theta;
+ampErr = conf.ampErr;
+phaErr = conf.phaErr;
+mtlCpl = conf.mtlCpl;
+xL = conf.xL;
+yL = conf.yL;
+
 
 % Calculate nominal element phase 
 phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
@@ -15,12 +22,9 @@ v = exp(1j*phi);
 % Calculate nominal beampattern interval
 B = w' * v;
 
-% Set error
-ampErr = 0.1;
-phaErr = deg2rad(1);
-gamma = 0.05;
+% Generate error vectors
 alpha = ones(M,1) * sqrt(ampErr^2 + sin(phaErr)^2)/2;
-beta = ones(M-1,1)*gamma;
+beta = ones(M-1,1)*mtlCpl;
 
 % Generate polar and circular intervals
 Eint = ciat.PolarInterval(w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2)),...
@@ -31,12 +35,12 @@ Aint = ciat.CircularInterval(zeros(M,1) , [0;beta]+[beta;0]);
 AF_nom = w .* v;
 AF_g = ciat.PolygonalInterval( Eint , ones(M,1)+Aint ,'tolerance',1e-3);
 AF_x = ciat.PolyarxInterval( Eint , ones(M,1)+Aint );
-% AF_a = ciat.PolyarcularInterval( Eint , ones(M,1)+Aint );
+AF_a = ciat.PolyarcularInterval( Eint , ones(M,1)+Aint );
 
 % Beampattern interval
 B_g = sum(AF_g);
 B_x = sum(AF_x);
-% B_a = sum(AF_a);
+B_a = sum(AF_a);
 
 % Schmid method
 wL2 = sqrt(sum(abs(w)*.2));
@@ -52,17 +56,14 @@ I = eye(M);
 Ca = ciat.CircularInterval(zeros(M) , diagC0);
 Cb = ciat.CircularInterval(zeros(M) , diagC1 + diagCm1);
 AF_An = (w.*v)' * (Ca + Cb + I);
-% AF_An = ciat.CircularInterval(Eint) .* (1+Aint);
-% AF_An = ciat.CircularInterval(AF_a);
 B_Ans = w' * (Ca + Cb + I) * v;
-% B_Ans = sum(AF_An);
 
 % Power intervals
 P_Sch = abs(B_Sch).^2;
 P_Ans = abs(B_Ans).^2;
 P_g = abs(B_g).^2;
 P_x = abs(B_x).^2;
-% P_a = abs(B_a).^2;
+P_a = abs(B_a).^2;
 
 
 %% Plot
@@ -74,7 +75,7 @@ lineWidthXS = 1;
 fBox = [0 0.5 -0.1 0.1];
 
 % Plot
-figure(1);clf;hold on;axis equal;
+figure(4);clf;hold on;axis equal;
 set(gca,'DefaultLineLineWidth',lineWidthM)
 plot(0,0,'k+')
 
@@ -92,9 +93,6 @@ lD = B_x.plot('r','linewidth',lineWidthS,'DisplayName','Polyarcular');
 % Axis labels
 xlabel('Real')
 ylabel('Imag')
-
-% Get figure limits
-xL = xlim(); yL = ylim();
 
 % Plot supremum
 l1 = fimplicit(@(x,y) x.^2+y.^2-P_Sch.sup,fBox,'c-.','linewidth',lineWidthS,...
@@ -114,7 +112,7 @@ fimplicit(@(x,y) x.^2+y.^2-P_x.inf,fBox,'r:','linewidth',lineWidthS);
 
 
 % Set figure limits
-xlim(xL-0.03); ylim(yL)
+xlim(xL); ylim(yL)
 
 
 % Interval label
@@ -127,7 +125,7 @@ for n = 1:M
                 'HorizontalAlignment','center', 'Interpreter','latex')
     end
 end
-text(B_g.real.mid,B_g.imag.mid,'$B^I\!=\!\sum_n E_n^I$',...
+text(B_g.real.mid,B_g.imag.mid,'$B^I$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
 text(sqrt(P_Ans.inf)-0.02,0,'$\underline{|B^I|}$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
@@ -148,7 +146,7 @@ annotText = {   ['$\tau_{P^I}^{\mathrm{(Sc)}}=' ...
                num2str(100*P_x.Width ./ P_g.Width,3) '\%$'],...
                ['$\tau_{P^I}^{\mathrm{(Ge)}}=' ...
                num2str(100*P_x.Width ./ P_x.Width,3) '\%$']};
-annotation('textbox',[0.14 0.13 .14 0.25],'String',annotText, ...
+annotation('textbox',[0.131 0.13 .14 0.25],'String',annotText, ...
            'BackgroundColor','w',...
            'HorizontalAlignment','right', ...
            'Interpreter','latex');
