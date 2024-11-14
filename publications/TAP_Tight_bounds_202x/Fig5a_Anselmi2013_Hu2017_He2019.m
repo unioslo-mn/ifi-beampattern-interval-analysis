@@ -9,8 +9,6 @@ M = conf.M;
 w = conf.w;
 theta = conf.theta;
 ampErr = conf.ampErr;
-xL = conf.xL;
-yL = conf.yL;
 
 % Calculate nominal element phase 
 phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
@@ -25,24 +23,25 @@ P_nom = abs(B_nom)^2;
 
 % Define and cast intervals
 AF_p = ciat.PolarInterval(A,ciat.RealInterval(phi));
-AF_r = ciat.RectangularInterval(AF_p);
-AF_g = ciat.PolygonalInterval(AF_p);
+tic;AF_g = ciat.PolygonalInterval(AF_p,'tolerance',conf.tol);T_g(1) = toc;
+tic;AF_x = ciat.PolyarxInterval(AF_p);T_x(1) = toc;
+tic; AF_r = ciat.RectangularInterval(AF_g); T_r(1) = toc;
 AF_a = ciat.PolyarcularInterval(AF_p);
-AF_x = ciat.PolyarxInterval(AF_p);
 
 % Sum intervals
-B_r = sum(AF_r);
-B_g = sum(AF_g);
+tic;B_r = sum(AF_r);T_r(2)=toc;
+tic;B_g = sum(AF_g);T_g(2)=toc;
+tic;B_x = sum(AF_x);T_x(2)=toc;
 B_a = sum(AF_a);
-B_x = sum(AF_x);
 
 % Get power intervals
-P_g = abs(B_g)^2;
+tic;P_g = abs(B_g)^2;T_g(3)=toc;
+tic;P_x = abs(B_x)^2;T_x(3)=toc;
+tic;P_r = abs(B_r)^2;T_r(3)=toc;
 P_a = abs(B_a)^2;
-P_x = abs(B_x)^2;
-P_r = abs(B_r)^2;
 
 % Hu's Taylor based approximation
+tic;
 A_R = sum(A .* cos(phi));
 A_I = sum(A .* sin(phi));
 P_Hu_d = 2*cos(phi) .* A_R + 2*sin(phi) .* A_I;
@@ -51,8 +50,10 @@ P_Hu_U = P_Hu_0 + sum( abs(P_Hu_d.sup) .* A.width/2 );
 P_Hu_I = P_Hu_0 - sum( abs(P_Hu_d.inf) .* A.width/2 );
 P_Hu_I (P_Hu_I<0) = 0;
 P_Hu = ciat.RealInterval(P_Hu_I,P_Hu_U);
+T_Hu(3) = toc;
 
 % He's matrix method
+tic;
 a_mid = A.mid';
 a_rad = A.width'/2;
 Theta = cos(phi - phi');
@@ -61,9 +62,15 @@ P_He_sup = P_He_mid + 2 * abs(a_mid * Theta) * a_rad' + a_rad * abs(Theta)*a_rad
 P_He_inf = P_He_mid - 2 * abs(a_mid * Theta) * a_rad';
 P_He_inf(P_He_inf<0) = 0;
 P_He = ciat.RealInterval(P_He_inf,P_He_sup);
+T_He(3) = toc;
 
-% Power values
-B_abs = sqrt([P_r,P_g,P_x,P_Hu,P_He]);
+% Calculate tightness
+tau_x = P_a.Width ./ P_x.Width;
+tau_g = P_a.Width ./ P_g.Width;
+tau_r = P_a.Width ./ P_r.Width;
+tau_Hu = P_a.Width ./ (P_a.Width + abs(P_Hu.sup-P_x.sup) + ...
+                                   abs(P_Hu.inf-P_x.inf));
+tau_He = P_a.Width ./ P_He.Width;
 
 %% Plot
 
@@ -71,8 +78,13 @@ B_abs = sqrt([P_r,P_g,P_x,P_Hu,P_He]);
 lineWidthL = 4;
 lineWidthM = 3;
 lineWidthS = 2;
-cList = getColorList(1);
+cList = getColorList(conf.cID);
 fBox = [0 2 B_x.Imag.inf B_x.Imag.sup];
+xL = conf.xL;
+yL = conf.yL;
+
+% Get beampattern interval absolute values
+B_abs = sqrt([P_r,P_g,P_x,P_Hu,P_He]);
 
 figure(1);clf;
 hold on;axis equal
@@ -82,9 +94,9 @@ xlabel('Real')
 ylabel('Imag')
 
 % Plot operand intervals
-AF_r.plot('c','linewidth',lineWidthL);
-AF_g.plot('b','linewidth',lineWidthL);
+AF_g.plot('b','linewidth',lineWidthS);
 AF_x.plot('r','linewidth',lineWidthS);
+AF_r.plot('color',cList(1,:),'linewidth',lineWidthS);
 
 % Plot sum intervals
 lC = B_x.plot('r','linewidth',lineWidthS,'DisplayName','Polyarcular');
@@ -92,16 +104,16 @@ lB = B_g.plot('b','linewidth',lineWidthL,'DisplayName','Polygonal');
 lA = B_r.plot('color',cList(1,:),'linewidth',lineWidthL,'DisplayName','Rectangular');
 
 % Interval label
-for n = 1:M
-    text(real(AF_nom(n))+0.01,imag(AF_nom(n)),['$E_{' num2str(n) '}^I$'], ...
+for m = 1:M
+    text(real(AF_nom(m))+0.015,imag(AF_nom(m)),['$E_{' num2str(m) '}^I$'], ...
                 'HorizontalAlignment','center', 'Interpreter','latex')
 end
 text(B_r.real.mid,B_r.imag.mid,'$B^I$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
-text(B_r.real.mid-0.05,B_r.imag.mid,'$\underline{|B^I|}$',...
-                    'HorizontalAlignment','center', 'Interpreter','latex')
-text(B_r.real.mid+0.05,B_r.imag.mid,'$\overline{|B^I|}$',...
-                    'HorizontalAlignment','center', 'Interpreter','latex')
+text(B_r.real.inf-0.01,B_r.imag.mid,'$\underline{|B^I|}$',...
+                    'HorizontalAlignment','right', 'Interpreter','latex')
+text(B_r.real.sup+0.01,B_r.imag.mid,'$\overline{|B^I|}$',...
+                    'HorizontalAlignment','left', 'Interpreter','latex')
 
 % Anselmi
 l3 = fimplicit(@(x,y) x.^2+y.^2-P_r.inf,fBox,'-.',...
@@ -126,6 +138,7 @@ fimplicit(@(x,y) x.^2+y.^2-P_g.inf,fBox,'b--','linewidth',lineWidthM)
 % Set figure limits
 xlim(xL); ylim(yL)
 
+
 % % Add two legend windows
 % leg1 = legend([lA(1),lB(1),lC(1)],'Location','NorthWest');
 % title(leg1,'$E^I \mathrm{ wrappers}$','Interpreter','latex');
@@ -133,76 +146,79 @@ xlim(xL); ylim(yL)
 % leg2 = legend(ax2, [l1,l2,l3,l4,l5], 'Location','northeast');
 % title(leg2,'$|B^I| \mathrm{ methods}$','Interpreter','latex');
 
-% Tightness values
-annotText = {['\color{red}\tau^{(a)}=' num2str(100*P_a.Width ./ P_x.Width,3) '%'],...
-            ['\color{blue}\tau^{(g)}=' num2str(100*P_a.Width ./ P_g.Width,3) '%'],...
-            ['\color[rgb]{' num2str(cList(1,:)) '}\tau^{(r)}=' ...
-                        num2str(100*P_a.Width ./ P_r.Width,3) '%'],...
-            ['\color[rgb]{' num2str(cList(3,:)) '}\tau^{(T)}=' ...
-                        num2str(100*P_a.Width ./ P_Hu.Width,3) '%'],...
-            ['\color[rgb]{' num2str(cList(4,:)) '}\tau^{(M)}=' ...
-                        num2str(100*P_a.Width ./ P_He.Width,3) '%']};
-annotation('textbox',[0.14 0.66 .14 0.25],'String',annotText, ...
-           'BackgroundColor','w','VerticalAlignment','top',...
-           'HorizontalAlignment','center','FitBoxToText','on');
-
-
 % Add zoom window for the operand interval
-axes('position',[.14 .10 .09 .3]); hold on; box on
-    % Plot operand intervals
+axes('position',[0.09,0.18,0.3,0.3]); hold on; box on
 AF_p.plot('b','linewidth',lineWidthL);
-AF_r.plot('c','linewidth',lineWidthL);
+AF_r.plot('color',cList(1,:),'linewidth',lineWidthL);
 AF_x.plot('r','linewidth',lineWidthS);
 axis equal
-xlim([0.064 0.073])
-xticks(-0.5)
-xtickangle(90)
 set(gca, 'XAxisLocation', 'top')
-ylim([0.115 0.128])
-yticks(0.65)
+m = 6;
+maxWidth = max([AF_r(m).Real.Width , AF_r(m).Imag.Width]);
+xlim(AF_r(m).Real.Midpoint + [-1 1]*maxWidth/2)
+ylim(AF_r(m).Imag.Midpoint + [-1 1]*maxWidth/2)
+xticks([]);
+yticks([]);
 set(gca, 'YAxisLocation', 'right')
-n=6;
-text(real(AF_nom(n)),imag(AF_nom(n))+0.001,['$E_{' num2str(n) '}^I$'], ...
+text(real(AF_nom(m)),imag(AF_nom(m))+0.001,['$E_{' num2str(m) '}^I$'], ...
                 'HorizontalAlignment','right', 'Interpreter','latex')
 
 % Add zoom window for the infimum
-axes('position',[.63 .13 .07 .15]); hold on; box on
-fimplicit(@(x,y) x.^2+y.^2-P_r.inf,'c-.','linewidth',lineWidthL)
-fimplicit(@(x,y) x.^2 + y.^2 - P_Hu.inf,':','color',cList(3,:),...
-                            'linewidth',lineWidthL)
-fimplicit(@(x,y) x.^2 + y.^2 - P_He.inf,':','color',cList(4,:),...
-                            'linewidth',lineWidthL)
+axes('position',[0.73,0.178,0.14,0.3]); hold on; box on
+fimplicit(@(x,y) x.^2+y.^2-P_r.inf,'-.', ...
+                        'color',cList(1,:),'linewidth',lineWidthL)
+fimplicit(@(x,y) x.^2 + y.^2 - P_Hu.inf,':', ...
+                        'color',cList(3,:),'linewidth',lineWidthL)
+fimplicit(@(x,y) x.^2 + y.^2 - P_He.inf,':', ...
+                        'color',cList(4,:),'linewidth',lineWidthL)
 fimplicit(@(x,y) x.^2+y.^2-(inf(abs(B_g)))^2,'b--','linewidth',lineWidthL)
 fimplicit(@(x,y) x.^2+y.^2-P_x.inf,fBox,'r:','linewidth',lineWidthM);
 axis equal
 xlim([min(B_abs.inf)-1e-3 , max(B_abs.inf)+1e-3])
-xticks(1.2)
+xticks([])
 xtickangle(90)
 set(gca, 'XAxisLocation', 'top')
-yticks(0)
+yticks([])
 text(mean(B_abs.inf),0,'$\underline{|B^I|}$',...
             'HorizontalAlignment','center', 'Interpreter','latex')
 
 
 % Add zoom window for the supremum
-axes('position',[.76 .13 .07 .15]); hold on; box on
-fimplicit(@(x,y) x.^2+y.^2-P_r.sup,'c-.','linewidth',lineWidthL)
-fimplicit(@(x,y) x.^2 + y.^2 - P_Hu.sup,':','color',cList(3,:),...
-                            'linewidth',lineWidthL)
-fimplicit(@(x,y) x.^2 + y.^2 - P_He.sup,':','color',cList(4,:),...
-                            'linewidth',lineWidthL)
+axes('position',[0.730,0.62,0.14,0.30]); hold on; box on
+fimplicit(@(x,y) x.^2+y.^2-P_r.sup,'-.', ...
+                    'color',cList(1,:),'linewidth',lineWidthL)
+fimplicit(@(x,y) x.^2 + y.^2 - P_Hu.sup,':',...
+                    'color',cList(3,:),'linewidth',lineWidthL)
+fimplicit(@(x,y) x.^2 + y.^2 - P_He.sup,':',...
+                    'color',cList(4,:),'linewidth',lineWidthL)
 fimplicit(@(x,y) x.^2+y.^2-P_g.sup,'b--','linewidth',lineWidthL)
 fimplicit(@(x,y) x.^2+y.^2-P_x.sup,fBox,'r:','linewidth',lineWidthM);
 axis equal
 xlim([min(B_abs.sup)-1e-3 , max(B_abs.sup)+1e-3])
-xticks(1.9)
+xticks([])
 set(gca, 'XAxisLocation', 'top')
 xtickangle(90)
-yticks(0)
+yticks([])
 text(mean(B_abs.sup),0,'$\overline{|B^I|}$',...
         'HorizontalAlignment','center', 'Interpreter','latex')
 
+fontsize(40,'point')
 
-fontsize(30,'point')
 
-
+% Tightness values
+annotText = {join(['\color{red}\tau^{(a)}=' num2str(100*tau_x,3) '%' ...
+                    ', T^{(a)}=' join(compose("%0.0f",1e3*T_x),'+') 'ms'],''),...
+            join(['\color{blue}\tau^{(g)}=' num2str(100*tau_g,3) '%' ...
+                    ', T^{(g)}=' join(compose("%0.0f",1e3*T_g),'+') 'ms'],''),...
+            join(['\color[rgb]{' num2str(cList(1,:)) '}\tau^{(r)}=' ...
+                        num2str(100*tau_r,3) '%' ...
+                    ', T^{(r)}=' join(compose("%0.0f",1e3*T_r),'+') 'ms'],''),...
+            join(['\color[rgb]{' num2str(cList(3,:)) '}\tau^{(T)}=' ...
+                        num2str(100*tau_He,3) '%' ...
+                    ', T^{(T)}=' join(compose("%0.0f",1e3*T_Hu),'+') 'ms'],''),...
+            join(['\color[rgb]{' num2str(cList(4,:)) '}\tau^{(M)}=' ...
+                        num2str(100*tau_Hu,3) '%' ...
+                    ', T^{(M)}=' join(compose("%0.0f",1e3*T_He),'+') 'ms'],'')};
+annotation('textbox',[0.164,0.553,0.280 0.367],'String',annotText, ...
+           'BackgroundColor','w','VerticalAlignment','top','fontSize',30,...
+           'HorizontalAlignment','center','FitBoxToText','on');

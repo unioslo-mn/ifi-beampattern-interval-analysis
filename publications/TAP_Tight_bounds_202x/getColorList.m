@@ -5,10 +5,10 @@ function colorList = getColorList(ID)
 
     switch ID
         case 0 
-            colorList = [166,206,227
-                        31,120,180
+            colorList = [31,120,180
+                        51,160,44
                         178,223,138
-                        51,160,44]/255;
+                        166,206,227]/255;
         case 1
             colorList = [228,26,28
                         55,126,184
@@ -19,6 +19,12 @@ function colorList = getColorList(ID)
                         217,95,2
                         117,112,179
                         231,41,138]/255;
+
+        case 3
+            colorList = [76 175 255 %55,126,184
+                        77,175,74
+                        152,78,163
+                        255,127,0]/255;
     end
 end
 

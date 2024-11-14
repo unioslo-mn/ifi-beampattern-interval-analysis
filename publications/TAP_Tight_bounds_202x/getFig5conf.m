@@ -8,8 +8,10 @@ switch ID
         conf.ampErr = 0.1;
         conf.phaErr = deg2rad(5);
         conf.mtlCpl = 0.01;
-        conf.xL = [-0.3 0.3];
+        conf.xL = [-0.26 0.34];
         conf.yL = [-0.155 0.155];
+        conf.cID = 3;
+        conf.tol = 1/(100*conf.M);
 end
 
 end
