@@ -25,25 +25,28 @@ alpha = ones(M,1) * sqrt(ampErr^2 + sin(phaErr)^2)/2;
 beta = ones(M-1,1)*mtlCpl;
 
 % Generate polar and circular intervals
-Eint = ciat.PolarInterval(w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2)),...
+Eint = ciat.PolarInterval((ones(M,1) + ciat.RealInterval(-ampErr/2,ampErr/2)),...
                           ciat.RealInterval(phi + [-1 1]*phaErr/2));
-Aint = ciat.CircularInterval(zeros(M,1) , [0;beta]+[beta;0]);
+Aint = w .* ciat.CircularInterval(ones(M,1) , [0;beta]+[beta;0]);
+
+% Element intervals (without coupling)
+E_a = ciat.PolyarxInterval(Eint);
 
 % Element intervals (coupled)
-AF_nom = w .* v;
-AF_a = ciat.PolyarcularInterval( Eint , ones(M,1)+Aint );
-tic;AF_g = ciat.PolygonalInterval( Eint , ones(M,1)+Aint ,'tolerance',conf.tol);T_g(1)=toc;
-tic;AF_x = ciat.PolyarxInterval( Eint , ones(M,1)+Aint );T_x(1)=toc;
-tic;AF_r = ciat.RectangularInterval(AF_x);T_r(1)=toc;
-tic;AF_c = ciat.CircularInterval(Eint) .* (ones(M,1)+Aint);T_c(1)=toc;
+AE_nom = w .* v;
+AE_a = ciat.PolyarcularInterval( Eint , ones(M,1)+Aint );
+tic;AE_g = ciat.PolygonalInterval( Eint , ones(M,1)+Aint ,'tolerance',conf.tol);T_g(1)=toc;
+tic;AE_x = ciat.PolyarxInterval( Eint , ones(M,1)+Aint );T_x(1)=toc;
+tic;AE_r = ciat.RectangularInterval(AE_x);T_r(1)=toc;
+tic;AE_c = ciat.CircularInterval(Eint) .* (ones(M,1)+Aint);T_c(1)=toc;
 
 
 % Beampattern interval
-tic;B_r = sum(AF_r);T_r(2)=toc;
-tic;B_g = sum(AF_g);T_g(2)=toc;
-tic;B_x = sum(AF_x);T_x(2)=toc;
-tic;B_c = sum(AF_c);T_c(2)=toc;
-B_a = sum(AF_a);
+tic;B_r = sum(AE_r);T_r(2)=toc;
+tic;B_g = sum(AE_g);T_g(2)=toc;
+tic;B_x = sum(AE_x);T_x(2)=toc;
+tic;B_c = sum(AE_c);T_c(2)=toc;
+B_a = sum(AE_a);
 
 % Schmid method
 tic;
@@ -62,7 +65,7 @@ Ca = ciat.CircularInterval(zeros(M) , diagC0);
 Cb = ciat.CircularInterval(zeros(M) , diagC1 + diagCm1);
 B_Ans = w' * (Ca + Cb + I) * v;
 T_An(2) = toc;
-AF_An = (w.*v)' * (Ca + Cb + I);
+AE_An = (w.*v)' * (Ca + Cb + I);
 
 
 % Power intervals
@@ -103,10 +106,12 @@ set(gca,'DefaultLineLineWidth',lineWidthM)
 plot(0,0,'k+')
 
 % Plot operand intervals
-AF_g.plot('b','linewidth',lineWidthS);
-AF_x.plot('r','linewidth',lineWidthS);
-% AF_c.plot('color',cList(2,:),'linewidth',lineWidthS);
-AF_An.plot('color',cList(4,:),'linewidth',lineWidthS);
+Eint.plot('k-','linewidth',lineWidthXS);
+Aint.plot('k-','linewidth',lineWidthXS);
+AE_g.plot('b','linewidth',lineWidthS);
+AE_x.plot('r','linewidth',lineWidthS);
+% AE_c.plot('color',cList(2,:),'linewidth',lineWidthS);
+AE_An.plot('color',cList(4,:),'linewidth',lineWidthS);
 
 % Plot sum intervals
 lA = B_Sch.plot('color',cList(3,:),'linewidth',lineWidthM,'DisplayName','Schmid');
@@ -147,7 +152,7 @@ xlim(xL); ylim(yL)
 
 % Interval label
 for n = 1:M
-    text(real(AF_nom(n))+0.02,imag(AF_nom(n)),['$E_{' num2str(n) '}^I$'], ...
+    text(real(AE_nom(n))+0.02,imag(AE_nom(n)),['$E_{' num2str(n) '}^I$'], ...
             'HorizontalAlignment','center', 'Interpreter','latex')
 end
 text(B_r.real.mid,B_r.imag.mid,'$B^I$',...
@@ -175,20 +180,20 @@ text(B_r.real.sup+0.03,B_r.imag.mid,'$\overline{|B^I|}$',...
 
 % Add zoom window for the operand interval
 axes('position',[0.09,0.18,0.3,0.3]); hold on; box on
-AF_g.plot('b','linewidth',lineWidthM);
-AF_x.plot('r','linewidth',lineWidthS);
-% AF_c.plot('color',cList(2,:),'linewidth',lineWidthS);
-AF_An.plot('color',cList(4,:),'linewidth',lineWidthS);
+AE_g.plot('b','linewidth',lineWidthM);
+AE_x.plot('r','linewidth',lineWidthS);
+% AE_c.plot('color',cList(2,:),'linewidth',lineWidthS);
+AE_An.plot('color',cList(4,:),'linewidth',lineWidthS);
 axis equal
 set(gca, 'XAxisLocation', 'top')
 n=6;
-maxWidth = max([AF_c(n).Real.Width , AF_c(n).Imag.Width]);
-xlim(AF_c(n).Real.Midpoint + [-1 1]*maxWidth/2)
-ylim(AF_c(n).Imag.Midpoint + [-1 1]*maxWidth/2)
+maxWidth = max([AE_c(n).Real.Width , AE_c(n).Imag.Width]);
+xlim(AE_c(n).Real.Midpoint + [-1 1]*maxWidth/2)
+ylim(AE_c(n).Imag.Midpoint + [-1 1]*maxWidth/2)
 xticks([]);
 yticks([]);
 set(gca, 'YAxisLocation', 'right')
-text(real(AF_nom(n)),imag(AF_nom(n)),['$E_{' num2str(n) '}^I$'], ...
+text(real(AE_nom(n)),imag(AE_nom(n)),['$E_{' num2str(n) '}^I$'], ...
                 'HorizontalAlignment','right', 'Interpreter','latex')
 
 
