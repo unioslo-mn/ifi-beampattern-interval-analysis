@@ -57,17 +57,23 @@ for k=1:K
     phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta(k));
     v = exp(1j*phi);
     
-    % Calculate error intervals
-    E_amp = ciat.PolarInterval(w.*(1+[-1 1].*ampErr/2) , ...
+    % Calculate element intervals without coupling
+    EA_amp = ciat.PolarInterval(w.*(1+[-1 1].*ampErr/2) , ...
                                 phi * [1 1]);
-    E_pha = ciat.PolarInterval(w.* [1,1] , ...
+    EA_pha = ciat.PolarInterval(w.* [1,1] , ...
                                 phi + [-1 1].*phaErr/2);
-    E_cal = ciat.PolarInterval(w.*(1+[-1 1].*ampErr/2) , ...
+    EA_cal = ciat.PolarInterval(w.*(1+[-1 1].*ampErr/2) , ...
                                 phi + [-1 1].*phaErr/2);
-    E_int = [E_amp, E_pha, E_cal];
-    A_int = ciat.CircularInterval(zeros(M,1) , [0;beta]+[beta;0]);
-    AF_a = [ciat.PolyarcularInterval([E_amp, E_pha, E_cal]) , ...
-            ciat.PolyarcularInterval(E_cal , ones(M,1) + A_int)];
+    EA_all = [EA_amp, EA_pha, EA_cal];
+
+    % Calculate element interval with coupling
+    E_cal = ciat.PolarInterval((ones(M,1) + ciat.RealInterval(-ampErr/2,ampErr/2)),...
+                          ciat.RealInterval(phi + [-1 1]*phaErr/2));
+    p_m = w;
+    R_m = [0;w(1:M-1)].*[0;beta] + [w(2:M);0].*[beta;0];
+    A_cpl = ciat.CircularInterval(p_m , R_m);
+    EA_a = [ciat.PolyarcularInterval([EA_amp, EA_pha, EA_cal]) , ...
+            ciat.PolyarcularInterval(E_cal , A_cpl)];
 
     % Calculate nominal beampattern
     B_nom(k,:) = w' * v;
@@ -78,55 +84,54 @@ for k=1:K
             % Rectangular
             tic;
             if s < 4
-                AF_r = ciat.RectangularInterval(E_int(:,s));
+                EA_r = ciat.RectangularInterval(EA_all(:,s));
             else
                 E_r = ciat.RectangularInterval(E_cal);
-                A_r = ciat.RectangularInterval(ones(M,1)+A_int);
-                AF_r = E_r .* A_r;
+                A_r = ciat.RectangularInterval(A_cpl);
+                EA_r = E_r .* A_r;
             end
             T_r(1,s) = T_r(1,s) + toc;
             tic;
-            B_r(k,s) = sum(AF_r);
+            B_r(k,s) = sum(EA_r);
             T_r(2,s) = T_r(2,s) + toc;
     
             % Circular
             tic;
             if s < 4
-                AF_c = ciat.CircularInterval(E_int(:,s));
+                EA_c = ciat.CircularInterval(EA_all(:,s));
             else
                 E_c = ciat.CircularInterval(E_cal);
-                A_c = ones(M,1) + A_int;
-                AF_c = E_c .* A_c;
+                EA_c = E_c .* A_cpl;
             end
             T_c(1,s) = T_c(1,s) + toc;
             tic;
-            B_c(k,s) = sum(AF_c);
+            B_c(k,s) = sum(EA_c);
             T_c(2,s) = T_c(2,s) + toc;
     
             % Polygonal
             tic
             if s < 4
-                AF_g = ciat.PolygonalInterval(E_int(:,s),...
+                EA_g = ciat.PolygonalInterval(EA_all(:,s),...
                                                     'tolerance',conf.tol);
             else
-                AF_g = ciat.PolygonalInterval(E_cal , ones(M,1) + A_int,...
+                EA_g = ciat.PolygonalInterval(E_cal , A_cpl,...
                                                     'tolerance',conf.tol);
             end
             T_g(1,s) = T_g(1,s) + toc;
             tic;
-            B_g(k,s) = sum(AF_g);
+            B_g(k,s) = sum(EA_g);
             T_g(2,s) = T_g(2,s) + toc;
     
             % Polyarcular
             tic
             if s < 4
-                AF_x = ciat.PolyarxInterval(E_int(:,s));
+                EA_x = ciat.PolyarxInterval(EA_all(:,s));
             else
-                AF_x = ciat.PolyarxInterval(E_cal , ones(M,1) + A_int);
+                EA_x = ciat.PolyarxInterval(E_cal , A_cpl);
             end
             T_x(1,s) = T_x(1,s) + toc;
             tic;
-            B_x(k,s) = sum(AF_x);
+            B_x(k,s) = sum(EA_x);
             T_x(2,s) = T_x(2,s) + toc;
         % end
     end

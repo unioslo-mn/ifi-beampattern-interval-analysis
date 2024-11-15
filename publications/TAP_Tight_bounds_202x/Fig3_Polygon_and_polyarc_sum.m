@@ -150,6 +150,9 @@ p1 = gI.plot('b:','linewidth',defLineWidth,'DisplayName','Convex polygon');
 p2 = xI.plot('r--','linewidth',defLineWidth,'DisplayName','Convex polyarc');
 p3 = xI_arc.plot('r-','linewidth',arcLineWidth,'DisplayName','Polyarcular arc');
 p4 = xI_vert.plot('r','MarkerSize',30,'DisplayName','Polyarcular vertex');
+p5 = plot(arc1 + arc2.','g--','DisplayName','Trimmed segments');
+plot(arc1 + edge2.','g--');
+plot(edge1 + arc2.','g--');
 
 % Gauss maps
 p5 = xI_arc.plotGaussMap(vectorSize,'r','DisplayName','Gauss map');
@@ -186,7 +189,7 @@ annotation('textbox',[0.73 0.81 0.16 0.10],'String',annotText, ...
 % Polyarcular arcs
 arc = cell(3,1);
 for idxI = 1:3
-    arc{idxI} = [xI(idxI).Arcs{:} ; xI(idxI).Vertices{:}];
+    arc{idxI} = [xI(idxI).Arcs ; xI(idxI).Vertices];
     [~,iSort] = sort(arc{idxI}.GaussMap.sup);
     arc{idxI} = arc{idxI}(iSort);
 end

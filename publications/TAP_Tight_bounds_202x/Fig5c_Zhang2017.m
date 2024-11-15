@@ -18,19 +18,19 @@ phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
 A = w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2));
 
 % Define and cast intervals
-E_nom = w .* exp(1i*phi);
-E_p = ciat.PolarInterval(w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2)),...
+EA_nom = w .* exp(1i*phi);
+EA_p = ciat.PolarInterval(w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2)),...
                           ciat.RealInterval(phi + [-1 1]*phaErr/2));
-tic;E_g = ciat.PolygonalInterval(E_p,'tolerance',conf.tol);T_g(1)=toc;
-tic;E_x = ciat.PolyarxInterval(E_p);T_x(1)=toc;
-tic;E_r = ciat.RectangularInterval(E_g);T_r(1)=toc;
-E_a = ciat.PolyarcularInterval(E_p);
+tic;EA_g = ciat.PolygonalInterval(EA_p,'tolerance',conf.tol);T_g(1)=toc;
+tic;EA_x = ciat.PolyarxInterval(EA_p);T_x(1)=toc;
+tic;EA_r = ciat.RectangularInterval(EA_g);T_r(1)=toc;
+EA_a = ciat.PolyarcularInterval(EA_p);
 
 % Sum intervals
-tic;B_r = sum(E_r);T_r(2)=toc;
-tic;B_g = sum(E_g);T_g(2)=toc;
-tic;B_x = sum(E_x);T_x(2)=toc;
-B_a = sum(E_a);
+tic;B_r = sum(EA_r);T_r(2)=toc;
+tic;B_g = sum(EA_g);T_g(2)=toc;
+tic;B_x = sum(EA_x);T_x(2)=toc;
+B_a = sum(EA_a);
 
 % Power intervals
 tic;P_r = abs(B_r).^2;T_r(3)=toc;
@@ -64,9 +64,9 @@ set(gca,'DefaultLineLineWidth',lineWidthL)
 plot(0,0,'k+')
 
 % Plot operand intervals
-E_r.plot('c','linewidth',lineWidthS);
-E_g.plot('b','linewidth',lineWidthS);
-E_x.plot('r','linewidth',lineWidthS);
+EA_r.plot('c','linewidth',lineWidthS);
+EA_g.plot('b','linewidth',lineWidthS);
+EA_x.plot('r','linewidth',lineWidthS);
 
 % Plot sum intervals
 lA = B_r.plot('c','linewidth',lineWidthL,'DisplayName','Rectangular');
@@ -98,8 +98,9 @@ xlim(xL); ylim(yL)
 
 % Interval label
 for m = 1:M
-    text(real(E_nom(m))+0.02,imag(E_nom(m)),['$E_{' num2str(m) '}^I$'], ...
-                'HorizontalAlignment','center', 'Interpreter','latex')
+    text(real(EA_nom(m))+0.01,imag(EA_nom(m)), ...
+                ['$E_{' num2str(m) '}^I A_{' num2str(m) '}^I$'], ...
+                'HorizontalAlignment','left', 'Interpreter','latex')
 end
 text(B_r.real.mid,B_r.imag.mid,'$B^I$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
@@ -125,20 +126,21 @@ text(B_r.real.sup+0.01,B_r.imag.mid,'$\overline{|B^I|}$',...
 
 % Add zoom window for the operand interval
 axes('position',[0.09,0.18,0.3,0.3]); hold on; box on
-E_p.plot('b','linewidth',lineWidthL);
-E_r.plot('color',cList(1,:),'linewidth',lineWidthL);
-E_x.plot('r','linewidth',lineWidthS);
+EA_p.plot('b','linewidth',lineWidthL);
+EA_r.plot('color',cList(1,:),'linewidth',lineWidthL);
+EA_x.plot('r','linewidth',lineWidthS);
 axis equal
 set(gca, 'XAxisLocation', 'top')
 n=6;
-maxWidth = max([E_r(n).Real.Width , E_r(n).Imag.Width]);
-xlim(E_r(n).Real.Midpoint + [-1 1]*maxWidth/2)
-ylim(E_r(n).Imag.Midpoint + [-1 1]*maxWidth/2)
+maxWidth = max([EA_r(n).Real.Width , EA_r(n).Imag.Width]);
+xlim(EA_r(n).Real.Midpoint + [-1 1]*maxWidth/2)
+ylim(EA_r(n).Imag.Midpoint + [-1 1]*maxWidth/2)
 xticks([]);
 yticks([]);
 set(gca, 'YAxisLocation', 'right')
-text(real(E_nom(n)),imag(E_nom(n))+0.001,['$E_{' num2str(n) '}^I$'], ...
-                'HorizontalAlignment','right', 'Interpreter','latex')
+text(real(EA_nom(n)),imag(EA_nom(n)), ...
+     ['$E_{' num2str(n) '}^I A_{' num2str(n) '}^I$'], ...
+                'HorizontalAlignment','center', 'Interpreter','latex')
 
 % Add zoom window for the infimum
 axes('position',[0.73,0.178,0.14,0.3]); hold on; box on

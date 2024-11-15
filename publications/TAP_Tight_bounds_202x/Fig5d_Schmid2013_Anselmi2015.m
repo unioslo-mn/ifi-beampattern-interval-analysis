@@ -24,29 +24,33 @@ B = w' * v;
 alpha = ones(M,1) * sqrt(ampErr^2 + sin(phaErr)^2)/2;
 beta = ones(M-1,1)*mtlCpl;
 
-% Generate polar and circular intervals
+% Generate the element intervals
 Eint = ciat.PolarInterval((ones(M,1) + ciat.RealInterval(-ampErr/2,ampErr/2)),...
                           ciat.RealInterval(phi + [-1 1]*phaErr/2));
-Aint = w .* ciat.CircularInterval(ones(M,1) , [0;beta]+[beta;0]);
+
+% Generate the coupling interval (A)
+p_m = w;
+R_m = [0;w(1:M-1)].*[0;beta] + [w(2:M);0].*[beta;0];
+Aint = ciat.CircularInterval(p_m , R_m);
 
 % Element intervals (without coupling)
 E_a = ciat.PolyarxInterval(Eint);
 
 % Element intervals (coupled)
-AE_nom = w .* v;
-AE_a = ciat.PolyarcularInterval( Eint , ones(M,1)+Aint );
-tic;AE_g = ciat.PolygonalInterval( Eint , ones(M,1)+Aint ,'tolerance',conf.tol);T_g(1)=toc;
-tic;AE_x = ciat.PolyarxInterval( Eint , ones(M,1)+Aint );T_x(1)=toc;
-tic;AE_r = ciat.RectangularInterval(AE_x);T_r(1)=toc;
-tic;AE_c = ciat.CircularInterval(Eint) .* (ones(M,1)+Aint);T_c(1)=toc;
+EA_nom = w .* v;
+EA_a = ciat.PolyarcularInterval( Eint , Aint );
+tic;EA_g = ciat.PolygonalInterval( Eint , Aint ,'tolerance',conf.tol);T_g(1)=toc;
+tic;EA_x = ciat.PolyarxInterval( Eint , Aint );T_x(1)=toc;
+tic;EA_r = ciat.RectangularInterval(EA_x);T_r(1)=toc;
+tic;EA_c = ciat.CircularInterval(Eint) .* (Aint);T_c(1)=toc;
 
 
 % Beampattern interval
-tic;B_r = sum(AE_r);T_r(2)=toc;
-tic;B_g = sum(AE_g);T_g(2)=toc;
-tic;B_x = sum(AE_x);T_x(2)=toc;
-tic;B_c = sum(AE_c);T_c(2)=toc;
-B_a = sum(AE_a);
+tic;B_r = sum(EA_r);T_r(2)=toc;
+tic;B_g = sum(EA_g);T_g(2)=toc;
+tic;B_x = sum(EA_x);T_x(2)=toc;
+tic;B_c = sum(EA_c);T_c(2)=toc;
+B_a = sum(EA_a);
 
 % Schmid method
 tic;
@@ -65,7 +69,7 @@ Ca = ciat.CircularInterval(zeros(M) , diagC0);
 Cb = ciat.CircularInterval(zeros(M) , diagC1 + diagCm1);
 B_Ans = w' * (Ca + Cb + I) * v;
 T_An(2) = toc;
-AE_An = (w.*v)' * (Ca + Cb + I);
+EA_An = (w.*v)' * (Ca + Cb + I);
 
 
 % Power intervals
@@ -106,12 +110,12 @@ set(gca,'DefaultLineLineWidth',lineWidthM)
 plot(0,0,'k+')
 
 % Plot operand intervals
-Eint.plot('k-','linewidth',lineWidthXS);
-Aint.plot('k-','linewidth',lineWidthXS);
-AE_g.plot('b','linewidth',lineWidthS);
-AE_x.plot('r','linewidth',lineWidthS);
-% AE_c.plot('color',cList(2,:),'linewidth',lineWidthS);
-AE_An.plot('color',cList(4,:),'linewidth',lineWidthS);
+% Eint.plot('k-','linewidth',lineWidthXS);
+% Aint.plot('k-','linewidth',lineWidthXS);
+EA_g.plot('b','linewidth',lineWidthS);
+EA_x.plot('r','linewidth',lineWidthS);
+% EA_c.plot('color',cList(2,:),'linewidth',lineWidthS);
+EA_An.plot('color',cList(4,:),'linewidth',lineWidthS);
 
 % Plot sum intervals
 lA = B_Sch.plot('color',cList(3,:),'linewidth',lineWidthM,'DisplayName','Schmid');
@@ -151,9 +155,10 @@ fimplicit(@(x,y) x.^2+y.^2-P_x.inf,fBox,'r:','linewidth',lineWidthS);
 xlim(xL); ylim(yL)
 
 % Interval label
-for n = 1:M
-    text(real(AE_nom(n))+0.02,imag(AE_nom(n)),['$E_{' num2str(n) '}^I$'], ...
-            'HorizontalAlignment','center', 'Interpreter','latex')
+for m = 1:M
+     text(real(EA_nom(m))+0.01,imag(EA_nom(m)), ...
+        ['$E_{' num2str(m) '}^I A_{' num2str(m) '}^I$'], ...
+                'HorizontalAlignment','left', 'Interpreter','latex')
 end
 text(B_r.real.mid,B_r.imag.mid,'$B^I$',...
                     'HorizontalAlignment','center', 'Interpreter','latex')
@@ -180,21 +185,22 @@ text(B_r.real.sup+0.03,B_r.imag.mid,'$\overline{|B^I|}$',...
 
 % Add zoom window for the operand interval
 axes('position',[0.09,0.18,0.3,0.3]); hold on; box on
-AE_g.plot('b','linewidth',lineWidthM);
-AE_x.plot('r','linewidth',lineWidthS);
-% AE_c.plot('color',cList(2,:),'linewidth',lineWidthS);
-AE_An.plot('color',cList(4,:),'linewidth',lineWidthS);
+EA_g.plot('b','linewidth',lineWidthM);
+EA_x.plot('r','linewidth',lineWidthS);
+% EA_c.plot('color',cList(2,:),'linewidth',lineWidthS);
+EA_An.plot('color',cList(4,:),'linewidth',lineWidthS);
 axis equal
 set(gca, 'XAxisLocation', 'top')
 n=6;
-maxWidth = max([AE_c(n).Real.Width , AE_c(n).Imag.Width]);
-xlim(AE_c(n).Real.Midpoint + [-1 1]*maxWidth/2)
-ylim(AE_c(n).Imag.Midpoint + [-1 1]*maxWidth/2)
+maxWidth = max([EA_c(n).Real.Width , EA_c(n).Imag.Width]);
+xlim(EA_c(n).Real.Midpoint + [-1 1]*maxWidth/2)
+ylim(EA_c(n).Imag.Midpoint + [-1 1]*maxWidth/2)
 xticks([]);
 yticks([]);
 set(gca, 'YAxisLocation', 'right')
-text(real(AE_nom(n)),imag(AE_nom(n)),['$E_{' num2str(n) '}^I$'], ...
-                'HorizontalAlignment','right', 'Interpreter','latex')
+text(real(EA_nom(n)),imag(EA_nom(n)), ...
+    ['$E_{' num2str(n) '}^I A_{' num2str(n) '}^I$'], ...
+                'HorizontalAlignment','center', 'Interpreter','latex')
 
 
 % Add zoom window for the infimum
