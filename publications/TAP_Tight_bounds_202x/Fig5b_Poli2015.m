@@ -9,29 +9,43 @@ M = conf.M;
 w = conf.w;
 theta = conf.theta;
 phaErr = conf.phaErr;
+nT = conf.nT;
 
 % Calculate nominal element phase 
 phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
 
-% Define and cast intervals
-EA_nom = w .* exp(1i*phi);
-EA_p = ciat.PolarInterval(w , ciat.RealInterval(phi + [-1 1]*phaErr/2));
-tic;EA_g = ciat.PolygonalInterval(EA_p,'tolerance',conf.tol);T_g(1)=toc;
-tic;EA_x = ciat.PolyarxInterval(EA_p);T_x(1)=toc;
-tic;EA_r = ciat.RectangularInterval(EA_g);T_r(1)=toc;
-EA_a = ciat.PolyarcularInterval(EA_p);
+% Measure running time on many occurences and average the result
+T_g    = zeros(3,1);
+T_r    = zeros(3,1);
+T_x    = zeros(3,1);
 
-% Sum intervals
-tic;B_r = sum(EA_r);T_r(2)=toc;
-tic;B_g = sum(EA_g);T_g(2)=toc;
-tic;B_x = sum(EA_x);T_x(2)=toc;
-B_a = sum(EA_a);
+for iT = 1:nT
+    fprintf("%0i,",iT)
+    % Define and cast intervals
+    EA_nom = w .* exp(1i*phi);
+    EA_p = ciat.PolarInterval(w , ciat.RealInterval(phi + [-1 1]*phaErr/2));
+    tic;EA_g = ciat.PolygonalInterval(EA_p,'tolerance',conf.tol);T_g(1)=T_g(1)+toc;
+    tic;EA_x = ciat.PolyarxInterval(EA_p);T_x(1)=T_x(1)+toc;
+    tic;EA_r = ciat.RectangularInterval(EA_g);T_r(1)=T_r(1)+toc;
+    EA_a = ciat.PolyarcularInterval(EA_p);
+    
+    % Sum intervals+
+    tic;B_r = sum(EA_r);T_r(2)=T_r(2)+toc;
+    tic;B_g = sum(EA_g);T_g(2)=T_g(2)+toc;
+    tic;B_x = sum(EA_x);T_x(2)=T_x(2)+toc;
+    B_a = sum(EA_a);
+    
+    % Calculate power intervals
+    tic;P_r = abs(B_r).^2;T_r(3)=T_r(3)+toc;
+    tic;P_g = abs(B_g).^2;T_g(3)=T_g(3)+toc;
+    tic;P_x = abs(B_x).^2;T_x(3)=T_x(3)+toc;
+    P_a = abs(B_a).^2;
+end
 
-% Calculate power intervals
-tic;P_r = abs(B_r).^2;T_r(3)=toc;
-tic;P_g = abs(B_g).^2;T_g(3)=toc;
-tic;P_x = abs(B_x).^2;T_x(3)=toc;
-P_a = abs(B_a).^2;
+% Calculate average time
+T_g    = T_g/nT;
+T_r    = T_r/nT;
+T_x    = T_x/nT;
 
 % Calculate tightness
 tau_x = P_a.Width ./ P_x.Width;
@@ -164,12 +178,15 @@ fontsize(40,'point')
 
 % Tightness values
 annotText = {join(['\color{red}\tau^{(a)}=' num2str(100*tau_x,3) '%' ...
-                    ', T^{(a)}=' join(compose("%0.0f",1e3*T_x),'+') 'ms'],''),...
+                    ', T^{(a)}=' join(compose("%0.0f",1e3*T_x),'+'), ...
+                    '=' num2str(sum(T_x,1)*1e3,'%0.0f') 'ms'],'')...
             join(['\color{blue}\tau^{(g)}=' num2str(100*tau_g,3) '%' ...
-                    ', T^{(g)}=' join(compose("%0.0f",1e3*T_g),'+') 'ms'],''),...
+                    ', T^{(g)}=' join(compose("%0.0f",1e3*T_g),'+'), ...
+                    '=' num2str(sum(T_g,1)*1e3,'%0.0f') 'ms'],'')...
             join(['\color[rgb]{' num2str(cList(1,:)) '}\tau^{(r)}=' ...
                         num2str(100*tau_r,3) '%' ...
-                    ', T^{(r)}=' join(compose("%0.0f",1e3*T_r),'+') 'ms'],'')};
-annotation('textbox',[0.164,0.553,0.280 0.367],'String',annotText, ...
+                    ', T^{(r)}=' join(compose("%0.0f",1e3*T_r),'+'), ...
+                    '=' num2str(sum(T_r,1)*1e3,'%0.0f') 'ms'],'')};
+annotation('textbox',[0.170,0.553,0.280 0.367],'String',annotText, ...
            'BackgroundColor','w','VerticalAlignment','top','fontSize',30,...
            'HorizontalAlignment','center','FitBoxToText','on');

@@ -12,6 +12,7 @@ switch ID
         conf.yL = [-0.155 0.155];
         conf.cID = 3;
         conf.tol = 1/(100*conf.M);
+        conf.nT = 100;
 end
 
 end

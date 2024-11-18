@@ -9,6 +9,7 @@ M = conf.M;
 w = conf.w;
 theta = conf.theta;
 ampErr = conf.ampErr;
+nT = conf.nT;
 
 % Calculate nominal element phase 
 phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
@@ -21,48 +22,66 @@ EA_nom = w .* exp(1j*phi);
 B_nom = sum(EA_nom);
 P_nom = abs(B_nom)^2;
 
-% Define and cast intervals
-EA_p = ciat.PolarInterval(A,ciat.RealInterval(phi));
-tic;EA_g = ciat.PolygonalInterval(EA_p,'tolerance',conf.tol);T_g(1) = toc;
-tic;EA_x = ciat.PolyarxInterval(EA_p);T_x(1) = toc;
-tic; EA_r = ciat.RectangularInterval(EA_g); T_r(1) = toc;
-EA_a = ciat.PolyarcularInterval(EA_p);
+% Measure running time on many occurences and average the result
+T_g    = zeros(3,1);
+T_r    = zeros(3,1);
+T_x    = zeros(3,1);
+T_He   = zeros(3,1);
+T_Hu   = zeros(3,1);
 
-% Sum intervals
-tic;B_r = sum(EA_r);T_r(2)=toc;
-tic;B_g = sum(EA_g);T_g(2)=toc;
-tic;B_x = sum(EA_x);T_x(2)=toc;
-B_a = sum(EA_a);
 
-% Get power intervals
-tic;P_g = abs(B_g)^2;T_g(3)=toc;
-tic;P_x = abs(B_x)^2;T_x(3)=toc;
-tic;P_r = abs(B_r)^2;T_r(3)=toc;
-P_a = abs(B_a)^2;
+for iT = 1:nT
+    fprintf("%0i,",iT)
+    % Define and cast intervals
+    EA_p = ciat.PolarInterval(A,ciat.RealInterval(phi));
+    tic;EA_g = ciat.PolygonalInterval(EA_p,'tolerance',conf.tol);T_g(1) = T_g(1)+toc;
+    tic;EA_x = ciat.PolyarxInterval(EA_p);T_x(1) = T_x(1)+toc;
+    tic; EA_r = ciat.RectangularInterval(EA_g); T_r(1) = T_r(1)+toc;
+    EA_a = ciat.PolyarcularInterval(EA_p);
+    
+    % Sum intervals
+    tic;B_r = sum(EA_r);T_r(2)=T_r(2)+toc;
+    tic;B_g = sum(EA_g);T_g(2)=T_g(2)+toc;
+    tic;B_x = sum(EA_x);T_x(2)=T_x(2)+toc;
+    B_a = sum(EA_a);
+    
+    % Get power intervals
+    tic;P_g = abs(B_g)^2;T_g(3)=T_g(3)+toc;
+    tic;P_x = abs(B_x)^2;T_x(3)=T_x(3)+toc;
+    tic;P_r = abs(B_r)^2;T_r(3)=T_r(3)+toc;
+    P_a = abs(B_a)^2;
+    
+    % Hu's Taylor based approximation
+    tic;
+    A_R = sum(A .* cos(phi));
+    A_I = sum(A .* sin(phi));
+    P_Hu_d = 2*cos(phi) .* A_R + 2*sin(phi) .* A_I;
+    P_Hu_0 = abs(sum(w .* exp(1j*phi)))^2;
+    P_Hu_U = P_Hu_0 + sum( abs(P_Hu_d.sup) .* A.width/2 );
+    P_Hu_I = P_Hu_0 - sum( abs(P_Hu_d.inf) .* A.width/2 );
+    P_Hu_I (P_Hu_I<0) = 0;
+    P_Hu = ciat.RealInterval(P_Hu_I,P_Hu_U);
+    T_Hu(3) = T_Hu(3)+toc;
+    
+    % He's matrix method
+    tic;
+    a_mid = A.mid';
+    a_rad = A.width'/2;
+    Theta = cos(phi - phi');
+    P_He_mid = abs(sum(w .* exp(1j*phi)))^2;
+    P_He_sup = P_He_mid + 2 * abs(a_mid * Theta) * a_rad' + a_rad * abs(Theta)*a_rad';
+    P_He_inf = P_He_mid - 2 * abs(a_mid * Theta) * a_rad';
+    P_He_inf(P_He_inf<0) = 0;
+    P_He = ciat.RealInterval(P_He_inf,P_He_sup);
+    T_He(3) = T_He(3)+ toc;
+end
 
-% Hu's Taylor based approximation
-tic;
-A_R = sum(A .* cos(phi));
-A_I = sum(A .* sin(phi));
-P_Hu_d = 2*cos(phi) .* A_R + 2*sin(phi) .* A_I;
-P_Hu_0 = abs(sum(w .* exp(1j*phi)))^2;
-P_Hu_U = P_Hu_0 + sum( abs(P_Hu_d.sup) .* A.width/2 );
-P_Hu_I = P_Hu_0 - sum( abs(P_Hu_d.inf) .* A.width/2 );
-P_Hu_I (P_Hu_I<0) = 0;
-P_Hu = ciat.RealInterval(P_Hu_I,P_Hu_U);
-T_Hu(3) = toc;
-
-% He's matrix method
-tic;
-a_mid = A.mid';
-a_rad = A.width'/2;
-Theta = cos(phi - phi');
-P_He_mid = abs(sum(w .* exp(1j*phi)))^2;
-P_He_sup = P_He_mid + 2 * abs(a_mid * Theta) * a_rad' + a_rad * abs(Theta)*a_rad';
-P_He_inf = P_He_mid - 2 * abs(a_mid * Theta) * a_rad';
-P_He_inf(P_He_inf<0) = 0;
-P_He = ciat.RealInterval(P_He_inf,P_He_sup);
-T_He(3) = toc;
+% Calculate average time
+T_g    = T_g/nT;
+T_He   = T_He/nT;
+T_Hu   = T_Hu/nT;
+T_r    = T_r/nT;
+T_x    = T_x/nT;
 
 % Calculate tightness
 tau_x = P_a.Width ./ P_x.Width;
@@ -209,18 +228,23 @@ fontsize(40,'point')
 
 % Tightness values
 annotText = {join(['\color{red}\tau^{(a)}=' num2str(100*tau_x,3) '%' ...
-                    ', T^{(a)}=' join(compose("%0.0f",1e3*T_x),'+') 'ms'],''),...
+                    ', T^{(a)}=' join(compose("%0.0f",1e3*T_x),'+'), ...
+                    '=' num2str(sum(T_x,1)*1e3,'%0.0f') 'ms'],'')...
             join(['\color{blue}\tau^{(g)}=' num2str(100*tau_g,3) '%' ...
-                    ', T^{(g)}=' join(compose("%0.0f",1e3*T_g),'+') 'ms'],''),...
+                    ', T^{(g)}=' join(compose("%0.0f",1e3*T_g),'+'), ...
+                    '=' num2str(sum(T_g,1)*1e3,'%0.0f') 'ms'],'')...
             join(['\color[rgb]{' num2str(cList(1,:)) '}\tau^{(r)}=' ...
                         num2str(100*tau_r,3) '%' ...
-                    ', T^{(r)}=' join(compose("%0.0f",1e3*T_r),'+') 'ms'],''),...
+                    ', T^{(r)}=' join(compose("%0.0f",1e3*T_r),'+'), ...
+                    '=' num2str(sum(T_r,1)*1e3,'%0.0f') 'ms'],'')...
             join(['\color[rgb]{' num2str(cList(3,:)) '}\tau^{(T)}=' ...
-                        num2str(100*tau_He,3) '%' ...
-                    ', T^{(T)}=' join(compose("%0.0f",1e3*T_Hu),'+') 'ms'],''),...
-            join(['\color[rgb]{' num2str(cList(4,:)) '}\tau^{(M)}=' ...
                         num2str(100*tau_Hu,3) '%' ...
-                    ', T^{(M)}=' join(compose("%0.0f",1e3*T_He),'+') 'ms'],'')};
-annotation('textbox',[0.164,0.553,0.280 0.367],'String',annotText, ...
+                    ', T^{(T)}=' join(compose("%0.0f",1e3*T_Hu),'+'), ...
+                    '=' num2str(sum(T_Hu,1)*1e3,'%0.0f') 'ms'],'')...
+            join(['\color[rgb]{' num2str(cList(4,:)) '}\tau^{(M)}=' ...
+                        num2str(100*tau_He,3) '%' ...
+                    ', T^{(M)}=' join(compose("%0.0f",1e3*T_He),'+'), ...
+                    '=' num2str(sum(T_He,1)*1e3,'%0.0f') 'ms'],'')};
+annotation('textbox',[0.175,0.553,0.280 0.367],'String',annotText, ...
            'BackgroundColor','w','VerticalAlignment','top','fontSize',30,...
            'HorizontalAlignment','center','FitBoxToText','on');

@@ -252,10 +252,10 @@ p0 = plot(thAxis,db(P_nom),'k-','DisplayName','Nominal');
 % Plot vertical splitting lines
 plot(thAxis(kSeg(2:4))'.*[1;1],yRange'.*ones(1,3),'k:')
 
-for s = 1%:4
+for s = 1:4
     
     kRange = kSeg(s):kSeg(s+1);
-     kRange = 1:K;
+     % kRange = 1:K;
 
     % Polygonal
     pGs = plot(thAxis(kRange),db(P_g(kRange,s).sup),'-','color','b', ...
