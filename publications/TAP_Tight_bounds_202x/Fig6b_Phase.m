@@ -71,6 +71,15 @@ figure(2);clf;hold on;axis equal;
 set(gca,'DefaultLineLineWidth',lineWidthL)
 plot(0,0,'k+')
 
+
+% Grey boxes for the zoom windows
+rectangle('Position',[-0.1447  -0.0217  0.0121   0.0121],...
+    'EdgeColor','none','FaceColor',ones(3,1)*0.95);
+rectangle('Position',[0.1200  0.0030  0.0057   0.0060],...
+    'EdgeColor','none','FaceColor',ones(3,1)*0.95);
+rectangle('Position',[0.0640  -0.0012  0.0023   0.0024],...
+    'EdgeColor','none','FaceColor',ones(3,1)*0.95);
+
 % Plot operand intervals
 EA_g.plot('b','linewidth',lineWidthS);
 EA_x.plot('r','linewidth',lineWidthS);
@@ -117,14 +126,9 @@ text(B_r.real.inf-0.01,B_r.imag.mid,'$\underline{|B^I|}$',...
 text(B_r.real.sup+0.01,B_r.imag.mid,'$\overline{|B^I|}$',...
                     'HorizontalAlignment','left', 'Interpreter','latex')
 
-
-% % Add two legend windows
-% legend([lA(1),lB(1),lC(1)],'Location','NorthWest')
-% ax2 = axes('position',get(gca,'position'),'visible','off');
-% legend(ax2, [l1,l2,l3], 'Location','northeast');
-
 % Add zoom window for the operand interval
 axes('position',[0.09,0.18,0.3,0.3]); hold on; box on
+set(gca,'Color',ones(3,1)*0.95)
 EA_p.plot('b','linewidth',lineWidthL);
 EA_r.plot('color',cList(1,:),'linewidth',lineWidthL);
 EA_x.plot('r','linewidth',lineWidthS);
@@ -143,6 +147,7 @@ text(real(EA_nom(m))+0.0005,imag(EA_nom(m)), ...
 
 % Add zoom window for the infimum
 axes('position',[0.73,0.178,0.14,0.3]); hold on; box on
+set(gca,'Color',ones(3,1)*0.95)
 fimplicit(@(x,y) x.^2+y.^2-P_r.inf,fBox,'-.', ...
                           'color',cList(1,:),'linewidth',lineWidthL);
 fimplicit(@(x,y) x.^2+y.^2-P_g.inf,fBox,'b--','linewidth',lineWidthL);
@@ -160,6 +165,7 @@ text(mean(B_abs.inf),0,'$\underline{|B^I|}$',...
 
 % Add zoom window for the supremum
 axes('position',[0.730,0.62,0.14,0.30]); hold on; box on
+set(gca,'Color',ones(3,1)*0.95)
 fimplicit(@(x,y) x.^2+y.^2-P_r.sup,fBox,'-.', ...
                         'color',cList(1,:),'linewidth',lineWidthL);
 fimplicit(@(x,y) x.^2+y.^2-P_g.sup,fBox,'b--','linewidth',lineWidthL);

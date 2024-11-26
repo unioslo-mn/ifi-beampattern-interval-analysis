@@ -48,7 +48,7 @@ T_An = 0;
 %%  Calculate beampattern
 
 % Load data or calculate
-if 1
+if 0
     load Fig6_data.mat
 else
 
@@ -74,6 +74,10 @@ for k=1:K
     A_cpl = ciat.CircularInterval(p_m , R_m);
     EA_a = [ciat.PolyarcularInterval([EA_amp, EA_pha, EA_cal]) , ...
             ciat.PolyarcularInterval(E_cal , A_cpl)];
+
+
+    %@Debug
+    % sum(EA_a,1);
 
     % Calculate nominal beampattern
     B_nom(k,:) = w' * v;

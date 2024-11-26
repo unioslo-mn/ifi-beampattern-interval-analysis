@@ -126,6 +126,15 @@ B_abs = sqrt([P_Sch,P_Ans,P_g,P_x]);
 % Plot
 figure(4);clf;hold on;axis equal;
 set(gca,'DefaultLineLineWidth',lineWidthM)
+
+% Grey boxes for the zoom windows
+rectangle('Position',[-0.1510  -0.0278 0.0243   0.0243],...
+    'EdgeColor','none','FaceColor',ones(3,1)*0.95);
+rectangle('Position',[0.1722  -0.0152  0.0290   0.0304],...
+    'EdgeColor','none','FaceColor',ones(3,1)*0.95);
+rectangle('Position',[-0.0010  -0.0096  0.0183 0.0192],...
+    'EdgeColor','none','FaceColor',ones(3,1)*0.95);
+
 plot(0,0,'k+')
 
 % Plot operand intervals
@@ -186,44 +195,30 @@ text(B_r.real.inf-0.03,B_r.imag.mid,'$\underline{|B^I|}$',...
 text(B_r.real.sup+0.03,B_r.imag.mid,'$\overline{|B^I|}$',...
                     'HorizontalAlignment','left', 'Interpreter','latex')
 
-% % Add two legend windows
-% legend([lA(1),lB(1),lC(1),lD(1)],'Location','NorthWest')
-% ax2 = axes('position',get(gca,'position'),'visible','off');
-% legend(ax2, [l1,l2,l3,l4], 'Location','northeast');
-
-% % Tightness values
-% annotText = {['\color{red}\tau^{(a)}=' num2str(100*tau_x,3) '%'],...
-%             ['\color{blue}\tau^{(g)}=' num2str(100*tau_g,3) '%'],...
-%             ['\color[rgb]{' num2str(cList(4,:)) '}\tau^{(A)}=' ...
-%                         num2str(100*tau_Ans,3) '%'],...
-%             ['\color[rgb]{' num2str(cList(3,:)) '}\tau^{(S)}=' ...
-%                         num2str(100*tau_Sch,3) '%']};
-% annotation('textbox',[0.14 0.66 .14 0.25],'String',annotText, ...
-%            'BackgroundColor','w','VerticalAlignment','top',...
-%            'HorizontalAlignment','center','FitBoxToText','on');
-
 % Add zoom window for the operand interval
 axes('position',[0.09,0.18,0.3,0.3]); hold on; box on
+set(gca,'Color',ones(3,1)*0.95)
 EA_g.plot('b','linewidth',lineWidthM);
 EA_x.plot('r','linewidth',lineWidthS);
 % EA_c.plot('color',cList(2,:),'linewidth',lineWidthS);
 EA_An.plot('color',cList(4,:),'linewidth',lineWidthS);
 axis equal
 set(gca, 'XAxisLocation', 'top')
-n=6;
-maxWidth = max([EA_c(n).Real.Width , EA_c(n).Imag.Width]);
-xlim(EA_c(n).Real.Midpoint + [-1 1]*maxWidth/2)
-ylim(EA_c(n).Imag.Midpoint + [-1 1]*maxWidth/2)
+m = 3;
+maxWidth = max([EA_c(m).Real.Width , EA_c(m).Imag.Width]);
+xlim(EA_c(m).Real.Midpoint + [-1 1]*maxWidth/2)
+ylim(EA_c(m).Imag.Midpoint + [-1 1]*maxWidth/2)
 xticks([]);
 yticks([]);
 set(gca, 'YAxisLocation', 'right')
-text(real(EA_nom(n)),imag(EA_nom(n)), ...
-    ['$E_{' num2str(n) '}^I A_{' num2str(n) '}^I$'], ...
+text(real(EA_nom(m)),imag(EA_nom(m)), ...
+    ['$E_{' num2str(m) '}^I A_{' num2str(m) '}^I$'], ...
                 'HorizontalAlignment','center', 'Interpreter','latex')
 
 
 % Add zoom window for the infimum
 axes('position',[0.73,0.178,0.14,0.3]); hold on; box on
+set(gca,'Color',ones(3,1)*0.95)
 fimplicit(@(x,y) x.^2+y.^2-P_Sch.inf,fBox,'-.', ...
                     'color',cList(3,:),'linewidth',lineWidthS);
 fimplicit(@(x,y) x.^2+y.^2-P_Ans.inf,fBox,'-.', ...
@@ -243,6 +238,7 @@ text(mean(B_abs.inf),0,'$\underline{|B^I|}$',...
 
 % Add zoom window for the supremum
 axes('position',[0.730,0.62,0.14,0.30]); hold on; box on
+set(gca,'Color',ones(3,1)*0.95)
 fimplicit(@(x,y) x.^2+y.^2-P_Sch.sup,fBox,'-.', ...
                         'color',cList(3,:),'linewidth',lineWidthS);
 fimplicit(@(x,y) x.^2+y.^2-P_Ans.sup,fBox,'-.', ...

@@ -1,4 +1,4 @@
-clear
+    clear
 % close all
 
 %% Anselmi 2013 and Hu 2017 (amplitude errors)
@@ -112,6 +112,15 @@ plot(0,0,'k+')
 xlabel('Real')
 ylabel('Imag')
 
+% Grey boxes for the zoom windows
+rectangle('Position',[-0.1456  -0.0226  0.0139   0.0139],...
+    'EdgeColor','none','FaceColor',ones(3,1)*0.95);
+rectangle('Position',[0.1246  -0.0033  0.0063   0.0066],...
+    'EdgeColor','none','FaceColor',ones(3,1)*0.95);
+rectangle('Position',[0.0505  -0.0086 0.0164 0.0172],...
+    'EdgeColor','none','FaceColor',ones(3,1)*0.95);
+
+
 % Plot operand intervals
 EA_g.plot('b','linewidth',lineWidthS);
 EA_x.plot('r','linewidth',lineWidthS);
@@ -124,7 +133,7 @@ lA = B_r.plot('color',cList(1,:),'linewidth',lineWidthL,'DisplayName','Rectangul
 
 % Interval label
 for m = 1:M
-    text(real(EA_nom(m))+0.01,imag(EA_nom(m)), ...
+    text(real(EA_nom(m))+0.01,imag(EA_nom(m))-0.005, ...
         ['$E_{' num2str(m) '}^I A_{' num2str(m) '}^I$'], ...
                 'HorizontalAlignment','left', 'Interpreter','latex')
 end
@@ -156,18 +165,11 @@ l4 = fimplicit(@(x,y) x.^2+y.^2-P_g.sup,fBox,'b--','linewidth',lineWidthM,...
 fimplicit(@(x,y) x.^2+y.^2-P_g.inf,fBox,'b--','linewidth',lineWidthM)
 
 % Set figure limits
-xlim(xL); ylim(yL)
-
-
-% % Add two legend windows
-% leg1 = legend([lA(1),lB(1),lC(1)],'Location','NorthWest');
-% title(leg1,'$E^I \mathrm{ wrappers}$','Interpreter','latex');
-% ax2 = axes('position',get(gca,'position'),'visible','off');
-% leg2 = legend(ax2, [l1,l2,l3,l4,l5], 'Location','northeast');
-% title(leg2,'$|B^I| \mathrm{ methods}$','Interpreter','latex');
+xlim(xL); ylim(yL);
 
 % Add zoom window for the operand interval
 axes('position',[0.09,0.18,0.3,0.3]); hold on; box on
+set(gca,'Color',ones(3,1)*0.95)
 EA_p.plot('b','linewidth',lineWidthL);
 EA_r.plot('color',cList(1,:),'linewidth',lineWidthL);
 EA_x.plot('r','linewidth',lineWidthS);
@@ -186,6 +188,7 @@ text(real(EA_nom(m)),imag(EA_nom(m))+0.003, ...
 
 % Add zoom window for the infimum
 axes('position',[0.73,0.178,0.14,0.3]); hold on; box on
+set(gca,'Color',ones(3,1)*0.95)
 fimplicit(@(x,y) x.^2+y.^2-P_r.inf,'-.', ...
                         'color',cList(1,:),'linewidth',lineWidthL)
 fimplicit(@(x,y) x.^2 + y.^2 - P_Hu.inf,':', ...
@@ -206,6 +209,7 @@ text(mean(B_abs.inf),0,'$\underline{|B^I|}$',...
 
 % Add zoom window for the supremum
 axes('position',[0.730,0.62,0.14,0.30]); hold on; box on
+set(gca,'Color',ones(3,1)*0.95)
 fimplicit(@(x,y) x.^2+y.^2-P_r.sup,'-.', ...
                     'color',cList(1,:),'linewidth',lineWidthL)
 fimplicit(@(x,y) x.^2 + y.^2 - P_Hu.sup,':',...
@@ -224,7 +228,6 @@ text(mean(B_abs.sup),0,'$\overline{|B^I|}$',...
         'HorizontalAlignment','center', 'Interpreter','latex')
 
 fontsize(40,'point')
-
 
 % Tightness values
 annotText = {join(['\color{red}\tau^{(a)}=' num2str(100*tau_x,3) '%' ...
@@ -245,6 +248,6 @@ annotText = {join(['\color{red}\tau^{(a)}=' num2str(100*tau_x,3) '%' ...
                         num2str(100*tau_He,3) '%' ...
                     ', T^{(M)}=' join(compose("%0.0f",1e3*T_He),'+'), ...
                     '=' num2str(sum(T_He,1)*1e3,'%0.0f') 'ms'],'')};
-annotation('textbox',[0.175,0.553,0.280 0.367],'String',annotText, ...
-           'BackgroundColor','w','VerticalAlignment','top','fontSize',30,...
+annotation('textbox',[0.152,0.555,0.280 0.367],'String',annotText, ...
+           'BackgroundColor','w','VerticalAlignment','top','fontSize',25,...
            'HorizontalAlignment','center','FitBoxToText','on');
