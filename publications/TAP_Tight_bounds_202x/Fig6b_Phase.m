@@ -9,7 +9,7 @@ M = conf.M;
 w = conf.w;
 theta = conf.theta;
 phaErr = conf.phaErr;
-nT = conf.nT;
+nT = 1%conf.nT;
 
 % Calculate nominal element phase 
 phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);

@@ -51,7 +51,7 @@ T_An = 0;
 %%  Calculate beampattern
 
 % Load data or calculate
-if 1
+if 0
     load Fig5_data.mat
 else
 
