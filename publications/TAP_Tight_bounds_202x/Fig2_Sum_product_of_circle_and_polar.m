@@ -133,10 +133,18 @@ annotation('textbox',[0.16 0.50 0.20 0.17],'String',annotText, ...
            'HorizontalAlignment','right', ...
            'Interpreter','latex');
 
+
 % Misc
+xlabel('Real')
+ylabel('Imag')
+fontsize(20,'points')
 xlim([0.55,2.15])
 legend([p1(1),p2(1),p6(1),p3(1),p5(1),p4(1)],'location','northwest', ...
         'FontSize',fontSizeDef)
+
+% Subplot label
+annotation('textbox',[0.17 0.12 0.1 0.1],'String','a)',...
+                        'FontSize',50,'EdgeColor','none')
 
 %% Calculate polar circular sum-product
 
@@ -261,5 +269,11 @@ plot(xL,[0,0],'color',0.7*ones(1,3),'linewidth',0.1)
 plot([0,0],yL,'color',0.7*ones(1,3),'linewidth',0.1)
 
 % Misc
+xlabel('Real')
+ylabel('Imag')
 fontsize(20,'points')
 legend([p1(1),p2(1),p3(1),p4(1),p5(1),p6(1)],'location','southeast')
+
+% Subplot label
+annotation('textbox',[0.17 0.12 0.1 0.1],'String','b)',...
+                        'FontSize',50,'EdgeColor','none')

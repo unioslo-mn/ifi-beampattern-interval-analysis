@@ -5,9 +5,9 @@ switch ID
         conf.M = 8;
         conf.w = taylorwin(conf.M,3,-20); conf.w = conf.w / sum(conf.w);
         conf.theta = deg2rad(40);
-        conf.ampErr = 0.1;
+        conf.ampErr = 0.10;
         conf.phaErr = deg2rad(5);
-        conf.mtlCpl = 0.01;
+        conf.cplCoeff = 0.01;
         conf.xL = [-0.26 0.34];
         conf.yL = [-0.155 0.155];
         conf.cID = 3;

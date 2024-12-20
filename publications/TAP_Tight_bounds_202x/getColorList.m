@@ -21,7 +21,7 @@ function colorList = getColorList(ID)
                         231,41,138]/255;
 
         case 3
-            colorList = [76 175 255 %55,126,184
+            colorList = [76 175 255
                         77,175,74
                         152,78,163
                         255,127,0]/255;

@@ -1,7 +1,7 @@
 clear
 % close all
 
-%% Poli 2015 (phase errors)
+%% Phase errors
 
 % Set parameters
 conf = getFig5conf(1);
@@ -18,11 +18,13 @@ phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta);
 T_g    = zeros(3,1);
 T_r    = zeros(3,1);
 T_x    = zeros(3,1);
+T_Ar    = zeros(3,1);
 
 for iT = 1:nT
     fprintf("%0i,",iT)
     % Define and cast intervals
     EA_nom = w .* exp(1i*phi);
+    B_nom = sum(EA_nom);
     EA_p = ciat.PolarInterval(w , ciat.RealInterval(phi + [-1 1]*phaErr/2));
     tic;EA_g = ciat.PolygonalInterval(EA_p,'tolerance',conf.tol);T_g(1)=T_g(1)+toc;
     tic;EA_x = ciat.PolyarxInterval(EA_p);T_x(1)=T_x(1)+toc;
@@ -40,17 +42,27 @@ for iT = 1:nT
     tic;P_g = abs(B_g).^2;T_g(3)=T_g(3)+toc;
     tic;P_x = abs(B_x).^2;T_x(3)=T_x(3)+toc;
     P_a = abs(B_a).^2;
+
+    % Arnestad's method
+    tic;
+    P_Ar_sup = ( abs(B_nom) + sqrt((phaErr/2)^2) )^2;
+    P_Ar_inf = ( abs(B_nom) - sqrt((phaErr/2)^2) )^2;
+    P_Ar_inf(P_Ar_inf<0) = 0;
+    P_Ar = ciat.RealInterval(P_Ar_inf,P_Ar_sup);
+    T_Ar(3) = T_Ar(3)+ toc;
 end
 
 % Calculate average time
 T_g    = T_g/nT;
 T_r    = T_r/nT;
 T_x    = T_x/nT;
+T_Ar    = T_Ar/nT;
 
 % Calculate tightness
 tau_x = P_a.Width ./ P_x.Width;
 tau_g = P_a.Width ./ P_g.Width;
 tau_r = P_a.Width ./ P_r.Width;
+tau_Ar = P_a.Width ./ P_Ar.Width;
 
 %% Plot
 
@@ -98,6 +110,8 @@ ylabel('Imag')
 % Plot supremum
 l1 = fimplicit(@(x,y) x.^2+y.^2-P_r.sup,fBox,'-.','color',cList(1,:),...
                             'linewidth',lineWidthM,'DisplayName','Poli');
+l1 = fimplicit(@(x,y) x.^2+y.^2-P_Ar.sup,fBox,'-.','color',cList(2,:),...
+                            'linewidth',lineWidthM,'DisplayName','Arnestad');
 l2 = fimplicit(@(x,y) x.^2+y.^2-P_g.sup,fBox,'b--','linewidth',lineWidthM,...
                                     'DisplayName','Tenuti');
 l3 = fimplicit(@(x,y) x.^2+y.^2-P_x.sup,fBox,'r:','linewidth',lineWidthM,...
@@ -106,6 +120,8 @@ l3 = fimplicit(@(x,y) x.^2+y.^2-P_x.sup,fBox,'r:','linewidth',lineWidthM,...
 % Plot Infimum
 fimplicit(@(x,y) x.^2+y.^2-P_r.inf,fBox,'-.','linewidth',lineWidthM,...
                                             'color',cList(1,:));
+fimplicit(@(x,y) x.^2+y.^2-P_Ar.inf,fBox,'-.','linewidth',lineWidthM,...
+                                            'color',cList(2,:));
 fimplicit(@(x,y) x.^2+y.^2-P_g.inf,fBox,'b--','linewidth',lineWidthM);
 fimplicit(@(x,y) x.^2+y.^2-P_x.inf,fBox,'r:','linewidth',lineWidthM);
 
@@ -150,6 +166,8 @@ axes('position',[0.73,0.178,0.14,0.3]); hold on; box on
 set(gca,'Color',ones(3,1)*0.95)
 fimplicit(@(x,y) x.^2+y.^2-P_r.inf,fBox,'-.', ...
                           'color',cList(1,:),'linewidth',lineWidthL);
+fimplicit(@(x,y) x.^2+y.^2-P_Ar.inf,fBox,'-.', ...
+                          'color',cList(2,:),'linewidth',lineWidthL);
 fimplicit(@(x,y) x.^2+y.^2-P_g.inf,fBox,'b--','linewidth',lineWidthL);
 fimplicit(@(x,y) x.^2+y.^2-P_x.inf,fBox,'r:','linewidth',lineWidthL);
 axis equal
@@ -168,6 +186,8 @@ axes('position',[0.730,0.62,0.14,0.30]); hold on; box on
 set(gca,'Color',ones(3,1)*0.95)
 fimplicit(@(x,y) x.^2+y.^2-P_r.sup,fBox,'-.', ...
                         'color',cList(1,:),'linewidth',lineWidthL);
+fimplicit(@(x,y) x.^2+y.^2-P_Ar.sup,fBox,'-.', ...
+                        'color',cList(2,:),'linewidth',lineWidthL);
 fimplicit(@(x,y) x.^2+y.^2-P_g.sup,fBox,'b--','linewidth',lineWidthL);
 fimplicit(@(x,y) x.^2+y.^2-P_x.sup,fBox,'r:','linewidth',lineWidthL);
 axis equal
@@ -192,7 +212,16 @@ annotText = {join(['\color{red}\tau^{(a)}=' num2str(100*tau_x,3) '%' ...
             join(['\color[rgb]{' num2str(cList(1,:)) '}\tau^{(r)}=' ...
                         num2str(100*tau_r,3) '%' ...
                     ', T^{(r)}=' join(compose("%0.0f",1e3*T_r),'+'), ...
-                    '=' num2str(sum(T_r,1)*1e3,'%0.0f') 'ms'],'')};
-annotation('textbox',[0.170,0.553,0.280 0.367],'String',annotText, ...
-           'BackgroundColor','w','VerticalAlignment','top','fontSize',30,...
+                    '=' num2str(sum(T_r,1)*1e3,'%0.0f') 'ms'],'') ...
+            join(['\color[rgb]{' num2str(cList(2,:)) '}\tau^{(A)}=' ...
+                        num2str(100*tau_Ar,3) '%' ...
+                    ', T^{(A)}=' join(compose("%0.0f",1e3*T_Ar),'+'), ...
+                    '=' num2str(sum(T_Ar,1)*1e3,'%0.0f') 'ms'],'')};
+annotation('textbox',[0.152,0.555,0.280 0.367],'String',annotText, ...
+           'BackgroundColor','w','VerticalAlignment','top','fontSize',25,...
            'HorizontalAlignment','center','FitBoxToText','on');
+
+annotation('textbox',[0.18 0.52 0.1 0.1],'String','b)',...
+                        'FontSize',60,'EdgeColor','none')
+
+

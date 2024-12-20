@@ -7,14 +7,14 @@ M = conf.M;
 w = conf.w;
 ampErr = conf.ampErr;
 phaErr = conf.phaErr;
-mtlCpl = conf.mtlCpl;
+cplCoeff = conf.cplCoeff;
 K = 1001;
 theta = linspace(-pi/2,pi/2,K)';
 kSeg = [0.23 0.5 0.77]; kSeg = [1 ceil(kSeg * K) K];
 
 % Generate error vectors
 alpha = ones(M,1) * sqrt(ampErr^2 + sin(phaErr)^2)/2;
-beta = ones(M-1,1)*mtlCpl;
+beta = ones(M-1,1)*cplCoeff;
 
 % Initialize beampattern intervals
 B_nom = zeros(K,1);
@@ -33,30 +33,33 @@ P_Hu(K,1) = ciat.RealInterval;
 P_He(K,1) = ciat.RealInterval;
 P_Sc(K,1) = ciat.RealInterval;
 P_An(K,1) = ciat.RealInterval;
+P_Ar(K,4) = ciat.RealInterval;
 
 % Calculate beampattern intervals for each angle
 T_r = zeros(3,4);
 T_c = zeros(3,4);
 T_g = zeros(3,4);
 T_x = zeros(3,4);
+T_Ar = zeros(3,4);
 T_He = 0;
 T_Hu = 0;
 T_Sc = 0;
 T_An = 0;
 
 
+
 %%  Calculate beampattern
 
 % Load data or calculate
-if 0
-    load Fig6_data.mat
+if 1
+    load Fig5_data.mat
 else
 
 % Calculate the beampattern bounds for the left half of the angle range
 for k=1:K
     phi = ((0:M-1)-(M-1)/2)' * pi*sin(theta(k));
     v = exp(1j*phi);
-    
+
     % Calculate element intervals without coupling
     EA_amp = ciat.PolarInterval(w.*(1+[-1 1].*ampErr/2) , ...
                                 phi * [1 1]);
@@ -140,58 +143,66 @@ for k=1:K
         % end
     end
 
-    % s = 1;
-    % if k >= kSeg(s) && k <= kSeg(s+1)
     % Hu's Taylor based approximation
-        tic;
-        A = w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2));
-        A_R = sum(A .* cos(phi));
-        A_I = sum(A .* sin(phi));
-        P_Hu_d = 2*cos(phi) .* A_R + 2*sin(phi) .* A_I;
-        P_Hu_0 = abs(sum(w .* exp(1j*phi)))^2;
-        P_Hu_U = P_Hu_0 + sum( abs(P_Hu_d.sup) .* A.width/2 );
-        P_Hu_I = P_Hu_0 - sum( abs(P_Hu_d.inf) .* A.width/2 );
-        P_Hu_I (P_Hu_I<0) = 0;
-        P_Hu(k) = ciat.RealInterval(P_Hu_I,P_Hu_U);
-        T_Hu = T_Hu + toc;
-        
-        % He's matrix method
-        tic;
-        A = w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2));
-        a_mid = A.mid';
-        a_rad = A.width'/2;
-        Theta = cos(phi - phi');
-        P_He_mid = abs(sum(w .* exp(1j*phi)))^2;
-        P_He_sup = P_He_mid + 2 * abs(a_mid * Theta) * a_rad' + ...
-                              a_rad * abs(Theta)*a_rad';
-        P_He_inf = P_He_mid - 2 * abs(a_mid * Theta) * a_rad';
-        P_He_inf(P_He_inf<0) = 0;
-        P_He(k) = ciat.RealInterval(P_He_inf,P_He_sup);
-        T_He = T_He + toc;
-    % end
+    tic;
+    A = w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2));
+    A_R = sum(A .* cos(phi));
+    A_I = sum(A .* sin(phi));
+    P_Hu_d = 2*cos(phi) .* A_R + 2*sin(phi) .* A_I;
+    P_Hu_0 = abs(sum(w .* exp(1j*phi)))^2;
+    P_Hu_U = P_Hu_0 + sum( abs(P_Hu_d.sup) .* A.width/2 );
+    P_Hu_I = P_Hu_0 - sum( abs(P_Hu_d.inf) .* A.width/2 );
+    P_Hu_I (P_Hu_I<0) = 0;
+    P_Hu(k) = ciat.RealInterval(P_Hu_I,P_Hu_U);
+    T_Hu = T_Hu + toc;
+    
+    % He's matrix method
+    tic;
+    A = w * (1 + ciat.RealInterval(-ampErr/2,ampErr/2));
+    a_mid = A.mid';
+    a_rad = A.width'/2;
+    Theta = cos(phi - phi');
+    P_He_mid = abs(sum(w .* exp(1j*phi)))^2;
+    P_He_sup = P_He_mid + 2 * abs(a_mid * Theta) * a_rad' + ...
+                          a_rad * abs(Theta)*a_rad';
+    P_He_inf = P_He_mid - 2 * abs(a_mid * Theta) * a_rad';
+    P_He_inf(P_He_inf<0) = 0;
+    P_He(k) = ciat.RealInterval(P_He_inf,P_He_sup);
+    T_He = T_He + toc;
+    
+    % Schmid method
+    tic
+    wL2 = sqrt(sum(abs(w)*.2));
+    maxDeltaB = sqrt(M) * wL2 * (w'*alpha + w(1:end-1)'*beta + ...
+                                 w(2:end)'*beta);
+    B_Sc = ciat.CircularInterval(B_nom(k),maxDeltaB);
+    P_Sc(k) = abs(B_Sc).^2;
+    T_Sc = T_Sc + toc;
+    
+    % Anselmi method
+    tic;
+    diagC0 = diag(alpha);
+    diagC1 = diag(beta,1);
+    diagCm1 = diag(beta,-1);
+    Ca = ciat.CircularInterval(zeros(M) , diagC0);
+    Cb = ciat.CircularInterval(zeros(M) , diagC1 + diagCm1);
+    B_An = w' * (Ca + Cb + eye(M)) * v;
+    P_An(k) = abs(B_An).^2;
+    T_An = T_An + toc;
 
-    % s = 4;
-    % if k >= kSeg(s) && k <= kSeg(s+1)
-        % Schmid method
-        tic
-        wL2 = sqrt(sum(abs(w)*.2));
-        maxDeltaB = sqrt(M) * wL2 * (w'*alpha + w(1:end-1)'*beta + ...
-                                     w(2:end)'*beta);
-        B_Sc = ciat.CircularInterval(B_nom(k),maxDeltaB);
-        P_Sc(k) = abs(B_Sc).^2;
-        T_Sc = T_Sc + toc;
-        
-        % Anselmi method
+    % Arnestad's method
+    for s = 1:4
         tic;
-        diagC0 = diag(alpha);
-        diagC1 = diag(beta,1);
-        diagCm1 = diag(beta,-1);
-        Ca = ciat.CircularInterval(zeros(M) , diagC0);
-        Cb = ciat.CircularInterval(zeros(M) , diagC1 + diagCm1);
-        B_An = w' * (Ca + Cb + eye(M)) * v;
-        P_An(k) = abs(B_An).^2;
-        T_An = T_An + toc;
-    % end
+        B_Ar_sup = abs(B_nom(k,:)) + sqrt(  (ampErr/2)^2 * (s~=2) ...
+                                            + (phaErr/2)^2 * (s~=1) )...
+                                     + 2*cplCoeff * (s>3);
+        B_Ar_inf = abs(B_nom(k,:)) - sqrt(  (ampErr/2)^2 * (s~=2) ...
+                                            + (phaErr/2)^2 * (s~=1) )...
+                                     - 2*cplCoeff * (s>3);
+        B_Ar_inf(B_Ar_inf<0) = 0;
+        P_Ar(k,s) = ciat.RealInterval(B_Ar_inf^2 , B_Ar_sup^2);
+        T_Ar(3,s) = T_Ar(3,s)+ toc;
+    end
 end
 
 % Calculate power pattern intervals
@@ -220,6 +231,7 @@ P_Hu.Infimum(P_Hu.inf==0)=eps;
 P_He.Infimum(P_He.inf==0)=eps;
 P_Sc.Infimum(P_Sc.inf==0)=eps;
 P_An.Infimum(P_An.inf==0)=eps;
+P_Ar.Infimum(P_Ar.inf==0)=eps;
 
 % Calculate pattern tolerance
 D_r = sum(P_r.width,1) / sum(P_nom);
@@ -231,6 +243,7 @@ D_Hu = sum((P_x(:,1).Width + abs(P_Hu.sup-P_x(:,1).sup) + ...
 D_He = sum(P_He.width,1) / sum(P_nom);
 D_Sc = sum(P_Sc.width,1) / sum(P_nom);
 D_An = sum(P_An.width,1) / sum(P_nom);
+D_Ar = sum(P_Ar.width,1) / sum(P_nom);
 
 end
 
@@ -280,13 +293,15 @@ for s = 1:4
         pRi = plot(thAxis(kRange),db(P_r(kRange,s).inf),':','color',cList(1,:),...
                                         'DisplayName','Rectangle (inf)');
     end
-        
-    % % Circular
-    % pCs = plot(thAxis(kRange),db(P_c(kRange,s).sup),'m-','color',cList(2,:),...
-    %                                 'DisplayName','Circle (sup)');
-    % pCi = plot(thAxis(kRange),db(P_c(kRange,s).inf),'m-','color',cList(2,:), ...
-    %                                 'DisplayName','Circle (inf)');
 
+    % Arnestad
+    if s>1
+        pRs = plot(thAxis(kRange),db(P_Ar(kRange,s).sup),':','color',cList(2,:), ...
+                                        'DisplayName','Rectangle (sup)');
+        pRi = plot(thAxis(kRange),db(P_Ar(kRange,s).inf),':','color',cList(2,:),...
+                                        'DisplayName','Rectangle (inf)');
+    end
+        
     
     if s == 1
         % Hu
@@ -334,7 +349,11 @@ annotText = {   'Amp. error',...
                     ', T^{(M)}=' num2str(T_He,'%0.1f') 's'],...
                 ['\color[rgb]{' num2str(cList(3,:)) '}' ...
                     '\Delta^{(T)}=' num2str(100*D_x(1)/D_Hu,3) '%'...
-                    ', T^{(T)}=' num2str(T_Hu,'%0.1f') 's']};
+                    ', T^{(T)}=' num2str(T_Hu,'%0.1f') 's'],...
+                % ['\color[rgb]{' num2str(cList(2,:)) '}' ...
+                %     '\Delta^{(A)}=' num2str(100*D_x(1)/D_Ar(1),3) '%'...
+                %     ', T^{(A)}=' num2str(sum(T_Ar(:,1)),'%0.1f') 's'],...
+                    };
 annotation('textbox',[0.165 0.42 .11 0.5],'String',annotText, ...
            'BackgroundColor','w',...
            'HorizontalAlignment','center','FitBoxToText','on');
@@ -349,9 +368,12 @@ annotText = {   'Phase error',...
                 ['\color[rgb]{' num2str(cList(1,:)) '}' ...
                     '\Delta^{(r)}=' num2str(100*D_x(2)/D_r(2),3) '%' ...
                     ', T^{(r)}=' num2str(sum(T_r(:,2)),'%0.1f') 's'],...
-                ['\color[rgb]{' num2str(cList(2,:)) '}']};
-annotation('textbox',[0.312,0.731,0.154,0.188],'String',annotText, ...
-           'BackgroundColor','w','HorizontalAlignment','center');
+                ['\color[rgb]{' num2str(cList(2,:)) '}' ...
+                    '\Delta^{(A)}=' num2str(100*D_x(2)/D_Ar(2),3) '%' ...
+                    ', T^{(A)}=' num2str(sum(T_Ar(:,2)),'%0.1f') 's']};
+annotation('textbox',[0.312,0.695,0.154,0.225],'String',annotText, ...
+           'BackgroundColor','w','HorizontalAlignment','center', ...
+        'FitBoxToText','on');
 
     % Calibration errors
 annotText = {   'Both errors',...
@@ -364,9 +386,12 @@ annotText = {   'Both errors',...
                 ['\color[rgb]{' num2str(cList(1,:)) '}' ...
                     '\Delta^{(r)}=' num2str(100*D_x(3)/D_r(3),3) '%' ...
                     ', T^{(r)}=' num2str(sum(T_r(:,3)),'%0.1f') 's'],...
-                ['\color[rgb]{' num2str(cList(2,:)) '}']};
-annotation('textbox',[0.568,0.726,0.154,0.194],'String',annotText, ...
-           'BackgroundColor','w','HorizontalAlignment','center');
+                ['\color[rgb]{' num2str(cList(2,:)) '}' ...
+                    '\Delta^{(A)}=' num2str(100*D_x(3)/D_Ar(3),3) '%' ...
+                    ', T^{(A)}=' num2str(sum(T_Ar(:,3)),'%0.1f') 's']};
+annotation('textbox',[0.568,0.695,0.154,0.225],'String',annotText, ...
+           'BackgroundColor','w','HorizontalAlignment','center' ...
+           ,'FitBoxToText','on');
 
 
     % Mutual coupling 
@@ -378,15 +403,17 @@ annotText = {   'Errors & coupling',...
                     '\Delta^{(g)}=' num2str(100*D_x(4)/D_g(4),3) '%' ...
                     ', T^{(g)}=' num2str(sum(T_g(:,4)),'%0.1f') 's'],...
                 ['\color[rgb]{' num2str(cList(4,:)) '}' ...
-                    '\Delta^{(A)}=' num2str(100*D_x(4)/D_An,3) '%' ...
-                    ', T^{(A)}=' num2str(T_An,'%0.1f') 's'],...
+                    '\Delta^{(C)}=' num2str(100*D_x(4)/D_An,3) '%' ...
+                    ', T^{(C)}=' num2str(T_An,'%0.1f') 's'],...
+                ['\color[rgb]{' num2str(cList(2,:)) '}' ...
+                    '\Delta^{(A)}=' num2str(100*D_x(4)/D_Ar(4),3) '%' ...
+                    ', T^{(A)}=' num2str(sum(T_Ar(:,4)),'%0.1f') 's'],...
                 ['\color[rgb]{' num2str(cList(3,:)) '}' ...
                     '\Delta^{(S)}=' num2str(100*D_x(4)/D_Sc,3) '%' ...
-                    ', T^{(S)}=' num2str(T_Sc,'%0.1f') 's'],...
-                ['\color[rgb]{' num2str(cList(1,:)) '}']};
-annotation('textbox',[0.739,0.681,0.162,0.239],'String',annotText, ...
-           'BackgroundColor','w','HorizontalAlignment','center');
-
+                    ', T^{(S)}=' num2str(T_Sc,'%0.1f') 's']};
+annotation('textbox',[0.739,0.695,0.154,0.225],'String',annotText, ...
+           'BackgroundColor','w','HorizontalAlignment','center', ...
+           'FitBoxToText','on');
 
 % Format figure
 xlim(xRange)

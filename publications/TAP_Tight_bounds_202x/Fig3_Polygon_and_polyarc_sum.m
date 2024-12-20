@@ -130,7 +130,9 @@ end
 xlim([-8 7])
 legend([p1(1),p4(1),p2(1),p3(1),p5(1)],'Location','northwest')
 
-
+% Subplot label
+annotation('textbox',[0.17 0.12 0.1 0.1],'String','a)',...
+                        'FontSize',50,'EdgeColor','none')
 
 %% Plot polyarcular sum
 
@@ -240,3 +242,7 @@ end
 
 xlim([-8 7])
 legend([p0(1),p1(1),p2(1),p3(1),p4(1),p5(1)],'Location','northwest')
+
+% Subplot label
+annotation('textbox',[0.17 0.12 0.1 0.1],'String','b)',...
+                        'FontSize',50,'EdgeColor','none')
