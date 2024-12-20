@@ -17,7 +17,7 @@ function plotComplexIntervals()
 % ________________________________________________________________________
 
 % Set colors
-plotCol = 'kcrb';
+plotCol = 'kcrbm';
 
 % Get parameter struct
 guicp = evalin('base','gui'); 
@@ -27,7 +27,7 @@ subplot(2,2,4);cla;hold on
 set(gca,'color','w');
 
 % Plot complex intervals
-for iPlt = 1:4
+for iPlt = 1:5
     if guicp.tb(iPlt).Value % guicp.plt.sel(idx)
         btr = (guicp.array.OrientError == 0);
         guicp.beampattern(iPlt).plotComplexIntervals('Color',plotCol(iPlt),...

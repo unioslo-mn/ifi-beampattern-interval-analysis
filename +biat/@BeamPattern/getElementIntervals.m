@@ -170,8 +170,15 @@ function value = getElementIntervals(obj,options)
                         end
                     end
                 else
-                   value = nan();
-                   warning('Polyarx type is not implemented for coupling.') 
+                   value(M,N) = ciat.PolyarxInterval;
+                    for n = 1:N
+                        for m = 1:M
+                            EcI = ciat.PolarInterval( ...
+                                                EcI_r(m,n), EcI_ph(m,n) );
+                            value(m,n) = ciat.PolyarxInterval(EcI,...
+                                                            AcI(m,n));
+                        end
+                    end
                 end
             otherwise
                 value = nan();

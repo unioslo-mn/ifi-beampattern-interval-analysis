@@ -85,9 +85,9 @@ function resetControllers(h)
                     tbx(idx).Value = guicp.plt.sel(2);
                 case 'cbTbC'
                     tbx(idx).Value = guicp.plt.sel(3);
-                case 'cbTbM'
+                case 'cbTbG'
                     tbx(idx).Value = guicp.plt.sel(4);
-                case 'cbTbA'
+                case 'cbTbX'
                     tbx(idx).Value = guicp.plt.sel(5);
                 case 'cbTbB'
                     tbx(idx).Value = guicp.plt.sel(6);

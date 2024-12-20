@@ -20,8 +20,10 @@ function updateBeamPattern(h)
             guicp.plt.sel(2) = value;
         case 'cbTbC'
             guicp.plt.sel(3) = value;
-        case 'cbTbM'
+        case 'cbTbG'
             guicp.plt.sel(4) = value;
+        case 'cbTbX'
+            guicp.plt.sel(5) = value;
         case 'cbThi'
             theta = round((asin(value)/pi*2+1)/...
                            2*(guicp.beampattern(1).BeamCount-1)+1);
@@ -36,7 +38,7 @@ function updateBeamPattern(h)
     end
     
     % Update beampattern plot visibility
-    for plt = 1:4
+    for plt = 1:5
        for lin = 0:2 
             ax.Children(end-(plt-1)*3-lin).Visible = guicp.plt.sel(plt);
        end

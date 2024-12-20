@@ -24,12 +24,12 @@ subplot(2,2,3);cla;
 set(gca,'color','w');
 
 % Set colors
-plotCol = 'kcrb';
-plotName = {'nom','rect','circ','poly'};
+plotCol = 'kcrbm';
+plotName = {'nom','rect','circ','pgon','parx'};
 
 % Plot beampatterns
 plt = [];
-for iPlt = 1:4
+for iPlt = 1:5
     if guicp.tb(iPlt).Value % guicp.plt.sel(iPlt)
         btr = (guicp.array.OrientError == 0);
         plt = [plt; guicp.beampattern(iPlt).plotBeamPattern(...
@@ -55,7 +55,7 @@ plot([sin(th_slider),sin(th_slider)],...
 ylim([guicp.plt.dynamicRange,max_value])
 
 if guicp.plt.legend
-    hL = legend(plt([3,4,7,10]),'AutoUpdate','off');
+    hL = legend(plt([3,4,7,10,13]),'AutoUpdate','off');
     set(hL,'Units', 'normalized', 'Position', [0.505,0.365,0.005,0.0663]);
     guicp.plt.legend = 0;
 end
